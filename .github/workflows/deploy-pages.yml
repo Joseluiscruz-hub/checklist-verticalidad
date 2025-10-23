@@ -1,0 +1,29 @@
+name: Deploy GitHub Pages (via gh-pages)
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build (no-op)
+        run: |
+          # No build step required for static root deploy
+          echo "Preparing files for deployment"
+
+      - name: Deploy to GitHub Pages (peaceiris)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
