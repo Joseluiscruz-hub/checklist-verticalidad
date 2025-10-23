@@ -21,10 +21,9 @@ jobs:
           # No build step required for static root deploy
           echo "Preparing files for deployment"
 
-      - name: Deploy to GitHub Pages (gh-pages branch)
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Deploy to GitHub Pages (peaceiris)
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          branch: gh-pages
-          folder: .
-          clean: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
