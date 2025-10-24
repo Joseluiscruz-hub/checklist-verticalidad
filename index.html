@@ -1848,9 +1848,13 @@ Estructura principal de la aplicación
             modalBackdrop.classList.remove('active');
             currentSku = null; // Reset SKU when checklist modal closes
             // Revoke temporary object URLs created for previews
-            try {
-                tempObjectUrls.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
-            } catch (e) { /* ignore */ }
+tempObjectUrls.forEach(url => {
+ prueba {
+        URL.revokeObjectURL(url);
+    } catch (e) {
+ console.warn('No se pudo revocar la URL del objeto:', url, e);
+    }
+});
             tempObjectUrls = [];
         }
 
