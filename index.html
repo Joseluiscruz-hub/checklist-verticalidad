@@ -1439,83 +1439,82 @@ Estructura principal de la aplicación
         // Actualiza el gráfico de estadísticas
         // =============================
         function updateStatsChart(data) {
-            const ctx = document.getElementById('stats-chart');
-            if (!ctx) return; // Exit if canvas not found
-            const context = ctx.getContext('2d');
-            if (!context) return; // Exit if context cannot be obtained
-
+            const canvas = document.getElementById('stats-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext && canvas.getContext('2d');
+            if (!ctx) return;
 
             if (statsChart) {
-                statsChart.destroy();
+                try { statsChart.destroy(); } catch (e) { /* ignore destroy errors */ }
             }
 
-            // Handle case with zero data to avoid Chart.js errors/warnings
-            const total = data.ok + data.error;
+            const total = (data && typeof data.ok === 'number' ? data.ok : 0) + (data && typeof data.error === 'number' ? data.error : 0);
             if (total === 0) {
-                // Optionally display a message on the canvas or hide it
-                context.clearRect(0, 0, ctx.width, ctx.height);
-                context.textAlign = 'center';
-                context.fillStyle = getComputedStyle(document.body).getPropertyValue('--color-text-secondary') || '#888';
-                context.fillText('No hay datos para mostrar', ctx.width / 2, ctx.height / 2);
-                statsChart = null; // Ensure chart instance is cleared
+                try {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--color-text-secondary') || '#888';
+                    ctx.fillText('No hay datos para mostrar', canvas.width / 2, canvas.height / 2);
+                } catch (e) { /* drawing may fail in some contexts */ }
+                statsChart = null;
                 return;
             }
 
+            const green = getComputedStyle(document.documentElement).getPropertyValue('--color-green-text') || 'rgba(16, 185, 129, 0.7)';
+            const red = getComputedStyle(document.documentElement).getPropertyValue('--color-red-text') || 'rgba(239, 68, 68, 0.7)';
+            const surface = getComputedStyle(document.documentElement).getPropertyValue('--color-surface') || '#fff';
+            const textColor = getComputedStyle(document.body).getPropertyValue('--color-text') || '#333';
 
-            statsChart = new Chart(context, {
+            const cfg = {
                 type: 'doughnut',
                 data: {
                     labels: ['OK', 'Con Incidencias'],
                     datasets: [{
-                        label: 'Estado', // Simpler label
+                        label: 'Estado',
                         data: [data.ok, data.error],
-                        backgroundColor: [
-                            getComputedStyle(document.documentElement).getPropertyValue('--color-green-text') || 'rgba(16, 185, 129, 0.7)', // Use CSS var if possible
-                            getComputedStyle(document.documentElement).getPropertyValue('--color-red-text') || 'rgba(239, 68, 68, 0.7)'
-                        ],
-                        borderColor: [ // Use surface color for border for cutout effect
-                            getComputedStyle(document.documentElement).getPropertyValue('--color-surface') || '#fff'
-                        ],
-                        borderWidth: 2 // Adjust border width as needed
+                        backgroundColor: [green, red],
+                        borderColor: [surface],
+                        borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '60%', // Adjust for desired doughnut thickness
+                    cutout: '60%',
                     plugins: {
                         legend: {
-                            position: 'bottom', // Better placement for doughnut
-                            labels: {
-                                color: getComputedStyle(document.body).getPropertyValue('--color-text') || '#333', // Use CSS var for text color
-                                boxWidth: 12,
-                                padding: 15
-                            }
+                            position: 'bottom',
+                            labels: { color: textColor, boxWidth: 12, padding: 15 }
                         },
                         tooltip: {
-                            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--color-surface') || '#fff',
-                            titleColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text') || '#333',
-                            bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text') || '#333',
+                            backgroundColor: surface,
+                            titleColor: textColor,
+                            bodyColor: textColor,
                             borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary') || '#ccc',
                             borderWidth: 1,
                             callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        // Calculate percentage
-                                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) + '%' : '0%';
-                                        label += `${context.parsed} (${percentage})`;
+                                label: function(ctx) {
+                                    let label = ctx.label || '';
+                                    if (label) label += ': ';
+                                    if (ctx.parsed !== null) {
+                                        const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                        const pct = sum > 0 ? ((ctx.parsed / sum) * 100).toFixed(1) + '%' : '0%';
+                                        label += ctx.parsed + ' (' + pct + ')';
                                     }
                                     return label;
                                 }
                             }
                         }
                     }
-                });
+                }
+            };
+
+            try {
+                statsChart = new Chart(ctx, cfg);
+            } catch (e) {
+                console.error('No se pudo crear el gráfico:', e);
+                statsChart = null;
+            }
         }
 
         // =============================
@@ -2421,8 +2420,8 @@ Estructura principal de la aplicación
                     });
                 }
 
-                // Wait for transaction to complete
-                await transaction.done;
+                // Wait for transaction to complete (compatible con IndexedDB nativo)
+                await waitForTransaction(transaction);
 
                 showToast(`${deletedCount} registro(s) antiguo(s) y ${photoDeleteCount} foto(s) eliminados.`, 'success');
 
@@ -2459,8 +2458,8 @@ Estructura principal de la aplicación
                     new Promise((res, rej) => { const req = fotosStore.clear(); req.onsuccess = res; req.onerror = rej; })
                 ]);
 
-                // Wait for transaction to complete (implicit commit on success)
-                await transaction.done;
+                // Wait for transaction to complete (compatible con IndexedDB nativo)
+                await waitForTransaction(transaction);
 
                 showToast("Todos los datos han sido eliminados.", "info");
                 products = productTemplates.map(createInitialProductState); // Reset session state
@@ -2545,6 +2544,7 @@ Estructura principal de la aplicación
         // ===== NEW ATOMIC SAVE FUNCTION =====
         // =============================
         // Guarda la sesión actual en el historial (IndexedDB)
+        // Implementación robusta que evita `new Promise(async ...)` y usa waitForTransaction
         // =============================
         async function commitSessionToHistory() {
             const productsToCommit = products.filter(p => p.status !== 'pending');
@@ -2560,67 +2560,60 @@ Estructura principal de la aplicación
 
             showLoader();
             const btn = document.getElementById('commit-session-btn');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...`;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+            }
 
             const transaction = db.transaction(['verificaciones', 'fotos'], 'readwrite');
             const verificacionesStore = transaction.objectStore('verificaciones');
             const fotosStore = transaction.objectStore('fotos');
-            let commitError = null;
 
             try {
-                const promises = productsToCommit.map(product => {
-                    return new Promise(async (resolve, reject) => { // Mark inner promise as async
-                        try {
-                            const verification = {
-                                sku: product.sku, descripcion: product.descripcion, factorEstiba: product.factorEstiba,
-                                status: product.status, fecha: new Date().toISOString(), inspector: product.inspector,
-                                turno: product.turno, ubicacion: product.ubicacion, observaciones: product.notes,
-                                parametros: product.parametros, total_fotos: product.fotos_adjuntas
-                            };
+                // For each product, enqueue add requests on the same transaction
+                for (const product of productsToCommit) {
+                    const verification = {
+                        sku: product.sku,
+                        descripcion: product.descripcion,
+                        factorEstiba: product.factorEstiba,
+                        status: product.status,
+                        fecha: new Date().toISOString(),
+                        inspector: product.inspector,
+                        turno: product.turno,
+                        ubicacion: product.ubicacion,
+                        observaciones: product.notes,
+                        parametros: product.parametros,
+                        total_fotos: product.fotos_adjuntas
+                    };
 
-                            const verificationId = await new Promise((res, rej) => { // await adding verification
-                                const request = verificacionesStore.add(verification);
-                                request.onsuccess = () => res(request.result);
-                                request.onerror = (e) => rej(e.target.error);
-                            });
-
-                            // Add photos for this verification
-                            let photoAddPromises = [];
-                            if (product.fotos && Object.keys(product.fotos).length > 0) {
-                                for (const [parametroId, fotoData] of Object.entries(product.fotos)) {
-                                    photoAddPromises.push(new Promise((resPhoto, rejPhoto) => {
-                                        const photoReq = fotosStore.add({
-                                            verificacion_id: verificationId,
-                                            parametro: parametroId,
-                                            blob: fotoData,
-                                            fecha: verification.fecha
-                                        });
-                                        photoReq.onsuccess = resPhoto;
-                                        photoReq.onerror = (e) => rejPhoto(e.target.error);
-                                    }));
-                                }
-                            }
-                            await Promise.all(photoAddPromises); // await adding photos
-                            resolve(); // Resolve outer promise after verification and photos are added
-                        } catch (innerError) {
-                            reject(innerError); // Propagate error
-                        }
+                    // Wrap add in a promise to get the generated key
+                    const verificationId = await new Promise((resolve, reject) => {
+                        const req = verificacionesStore.add(verification);
+                        req.onsuccess = () => resolve(req.result);
+                        req.onerror = (e) => reject(e.target ? e.target.error : e);
                     });
-                });
 
-                await Promise.all(promises); // Wait for all products and their photos
-
-            } catch (error) {
-                commitError = error;
-                console.error("Error durante la preparación/guardado:", error);
-                if (transaction.error === null && transaction.readyState === 'active') { // Abort only if active and no underlying error already aborted it
-                    try { transaction.abort(); } catch (abortError) { console.warn("Error aborting transaction:", abortError); }
+                    // Add photos if present; schedule them on the same transaction
+                    if (product.fotos && Object.keys(product.fotos).length > 0) {
+                        for (const [parametroId, fotoData] of Object.entries(product.fotos)) {
+                            await new Promise((resPhoto, rejPhoto) => {
+                                const photoReq = fotosStore.add({
+                                    verificacion_id: verificationId,
+                                    parametro: parametroId,
+                                    blob: fotoData,
+                                    fecha: verification.fecha
+                                });
+                                photoReq.onsuccess = () => resPhoto(photoReq.result);
+                                photoReq.onerror = (e) => rejPhoto(e.target ? e.target.error : e);
+                            });
+                        }
+                    }
                 }
-            }
 
-            transaction.oncomplete = () => {
-                if (commitError) return; // Prevent success message if error occurred
+                // Wait for the transaction to complete (or error/abort)
+                await waitForTransaction(transaction);
+
+                // Success path
                 hideLoader();
                 showToast(`✅ ${productsToCommit.length} verificaciones guardadas con éxito.`, 'success');
                 // Reset products state
@@ -2631,19 +2624,20 @@ Estructura principal de la aplicación
                     }
                 });
                 filterAndRender();
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-save mr-2"></i> Guardar en Historial`;
-            };
-
-            transaction.onerror = (event) => {
+            } catch (err) {
+                // Try to abort if transaction still active
+                try {
+                    if (transaction && transaction.readyState === 'active' && !transaction.error) transaction.abort();
+                } catch (abortErr) { /* ignore abort errors */ }
+                console.error('Error guardando sesión en historial:', err);
                 hideLoader();
-                // Error might be from commit phase or caught earlier
-                const finalError = event.target.error || commitError;
-                console.error('Error en la transacción de guardado:', finalError);
-                showToast(`⚠️ Error grave al guardar: ${finalError?.message || 'Error desconocido'}`, 'error');
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-save mr-2"></i> Guardar en Historial`;
-            };
+                showToast(`⚠️ Error grave al guardar: ${err?.message || err}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save mr-2"></i> Guardar en Historial';
+                }
+            }
         }
 
 
@@ -2843,8 +2837,7 @@ Estructura principal de la aplicación
         }
 
 
-        scanQrMainBtn.addEventListener('click', startQrScanner);
-        // closeQrScannerBtn listener is now part of closeModalAndBackdrop
+    // closeQrScannerBtn listener is now part of closeModalAndBackdrop
 
         // --- END QR SCANNER LOGIC ---
 
