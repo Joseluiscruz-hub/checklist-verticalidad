@@ -1323,17 +1323,24 @@ Estructura principal de la aplicación
 
                         let photosHtml = '<h4 class="text-md font-semibold mt-6 mb-3 border-t dark:border-gray-600 pt-4">Fotos Adjuntas</h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4">';
                         if (photos && photos.length > 0) {
-                            photos.forEach(photo => {
-                                const param = parametrosChecklist.find(p => p.nombre === photo.parametro);
-                                const altText = `Foto de ${param?.pregunta || 'evidencia'}`;
-                                photosHtml += `
-                                <div class="text-center">
-                                    <a href="${photo.blob}" target="_blank" title="Ver imagen completa" class="block border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden hover:border-sky-500 transition">
-                                        <img src="${photo.blob}" class="w-full h-32 object-cover" alt="${altText}">
-                                    </a>
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${param?.pregunta || 'Evidencia'}</p>
-                                </div>`;
-                            });
+                                photos.forEach(photo => {
+                                    const param = parametrosChecklist.find(p => p.nombre === photo.parametro);
+                                    const altText = `Foto de ${param?.pregunta || 'evidencia'}`;
+                                    // Support blobs (new) and dataURL strings (legacy)
+                                    let src = '';
+                                    if (photo.blob instanceof Blob) {
+                                        src = createObjectUrl(photo.blob);
+                                    } else if (typeof photo.blob === 'string') {
+                                        src = photo.blob;
+                                    }
+                                    photosHtml += `
+                                    <div class="text-center">
+                                        <a href="${src}" target="_blank" title="Ver imagen completa" class="block border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden hover:border-sky-500 transition">
+                                            <img src="${src}" class="w-full h-32 object-cover" alt="${altText}">
+                                        </a>
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${param?.pregunta || 'Evidencia'}</p>
+                                    </div>`;
+                                });
                         } else {
                             photosHtml += '<p class="col-span-full text-sm text-gray-500 dark:text-gray-400">No hay fotos para esta verificación.</p>';
                         }
@@ -1710,6 +1717,20 @@ Estructura principal de la aplicación
 
         const modal = document.getElementById('checklist-modal');
         const modalBackdrop = document.getElementById('modal-backdrop');
+        // Temporary object URLs created for previewing Blobs. Revoke on modal close to avoid memory leaks.
+        let tempObjectUrls = [];
+        function createObjectUrl(maybeBlob) {
+            try {
+                if (!maybeBlob) return '';
+                if (typeof maybeBlob === 'string') return maybeBlob; // Already a data URL or external URL
+                const url = URL.createObjectURL(maybeBlob);
+                tempObjectUrls.push(url);
+                return url;
+            } catch (e) {
+                console.warn('Could not create object URL for blob', e);
+                return '';
+            }
+        }
         const closeModalBtn = document.getElementById('close-modal-btn');
         const cancelBtn = document.getElementById('cancel-btn');
         const saveBtn = document.getElementById('save-btn');
@@ -1736,6 +1757,13 @@ Estructura principal de la aplicación
                 paramDiv.className = 'border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50';
                 const currentValue = product.parametros[param.nombre] || '';
                 const hasPhoto = product.fotos && product.fotos[param.nombre];
+                // Determine preview src: support both previous DataURL strings and new Blob objects
+                let previewSrc = '';
+                if (hasPhoto) {
+                    const val = product.fotos[param.nombre];
+                    if (typeof val === 'string') previewSrc = val;
+                    else if (val instanceof Blob) previewSrc = createObjectUrl(val);
+                }
                 paramDiv.innerHTML = `
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div class="flex-grow">
@@ -1761,7 +1789,7 @@ Estructura principal de la aplicación
                                 <i class="fas fa-camera mr-1" aria-hidden="true"></i> ${hasPhoto ? 'Cambiar' : 'Agregar'}
                             </button>
                             <div class="photo-preview mt-1 h-8 w-8 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-                                ${hasPhoto ? `<img src="${product.fotos[param.nombre]}" alt="Preview foto ${param.pregunta}" class="w-full h-full object-cover">` : ''}
+                                ${hasPhoto && previewSrc ? `<img src="${previewSrc}" alt="Preview foto ${param.pregunta}" class="w-full h-full object-cover">` : ''}
                             </div>
                         </div>
                     </div>
@@ -1819,6 +1847,15 @@ Estructura principal de la aplicación
             });
             modalBackdrop.classList.remove('active');
             currentSku = null; // Reset SKU when checklist modal closes
+            // Revoke temporary object URLs created for previews
+tempObjectUrls.forEach(url => {
+ prueba {
+        URL.revokeObjectURL(url);
+    } catch (e) {
+ console.warn('No se pudo revocar la URL del objeto:', url, e);
+    }
+});
+            tempObjectUrls = [];
         }
 
         // Attach listener to backdrop to close any active modal
@@ -1870,21 +1907,22 @@ Estructura principal de la aplicación
                     try {
                         const maxSize = parseInt(document.getElementById('photo-max-size').value, 10);
                         const quality = parseFloat(document.getElementById('photo-quality').value);
-                        const compressedBlob = await resizeImage(file, maxSize, quality);
-                        const dataUrl = await blobToBase64(compressedBlob);
-                        product.fotos[paramId] = dataUrl;
+                                const compressedBlob = await resizeImage(file, maxSize, quality);
+                                // Store Blob in product.fotos for efficient storage in IndexedDB
+                                product.fotos[paramId] = compressedBlob;
 
-                        // Update UI (ensure elements exist)
-                        const photoButton = document.querySelector(`button.photo-btn[data-param="${paramId}"]`);
-                        const previewContainer = photoButton?.parentElement?.querySelector('.photo-preview');
+                                // Update UI (ensure elements exist)
+                                const photoButton = document.querySelector(`button.photo-btn[data-param="${paramId}"]`);
+                                const previewContainer = photoButton?.parentElement?.querySelector('.photo-preview');
 
-                        if (photoButton) {
-                            photoButton.innerHTML = `<i class="fas fa-camera mr-1"></i> Cambiar`;
-                            photoButton.className = 'photo-btn px-3 py-1 text-xs font-medium rounded-lg transition bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
-                        }
-                        if (previewContainer) {
-                            previewContainer.innerHTML = `<img src="${dataUrl}" alt="Preview ${paramId}" class="w-full h-full object-cover">`;
-                        }
+                                if (photoButton) {
+                                    photoButton.innerHTML = `<i class="fas fa-camera mr-1"></i> Cambiar`;
+                                    photoButton.className = 'photo-btn px-3 py-1 text-xs font-medium rounded-lg transition bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+                                }
+                                if (previewContainer) {
+                                    const previewUrl = createObjectUrl(compressedBlob);
+                                    previewContainer.innerHTML = `<img src="${previewUrl}" alt="Preview ${paramId}" class="w-full h-full object-cover">`;
+                                }
 
                         updatePhotoCount(product);
                         showToast('Foto agregada/actualizada.', 'success');
@@ -2134,16 +2172,22 @@ Estructura principal de la aplicación
                 </tr>`;
 
                     if (p.fotos_adjuntas > 0 && p.fotos) {
-                        const photoItems = Object.entries(p.fotos).map(([parametroId, fotoData]) => {
+                        const photoEntries = Object.entries(p.fotos);
+                        const photoItemsArr = [];
+                        for (const [parametroId, fotoData] of photoEntries) {
                             const paramInfo = parametrosChecklist.find(param => param.nombre === parametroId);
                             const paramQuestion = paramInfo ? paramInfo.pregunta.replace(/[¿?]/g, '') : parametroId;
-                            return `
+                            let src = '';
+                            if (typeof fotoData === 'string') src = fotoData;
+                            else if (fotoData instanceof Blob) src = await blobToBase64(fotoData);
+                            photoItemsArr.push(`
                             <div class="photo-item" style="display:inline-block; margin:5px; text-align:center; font-size:9px; color:#555; vertical-align: top; width: 120px;">
-                                <img src="${fotoData}" alt="${paramQuestion.replace(/"/g, '&quot;')}" style="max-width:120px; max-height:120px; border:1px solid #ddd; border-radius:4px; margin-bottom:3px; object-fit: contain;">
+                                <img src="${src}" alt="${paramQuestion.replace(/"/g, '&quot;')}" style="max-width:120px; max-height:120px; border:1px solid #ddd; border-radius:4px; margin-bottom:3px; object-fit: contain;">
                                 <p style="margin:0; word-wrap: break-word;">${paramQuestion}</p>
                             </div>
-                        `;
-                        }).join('');
+                        `);
+                        }
+                        const photoItems = photoItemsArr.join('');
 
                         productRow += `
                         <tr class="photo-row" style="page-break-inside: avoid;">
@@ -2327,9 +2371,23 @@ Estructura principal de la aplicación
                     getAllFromStore('fotos')
                 ]);
 
+                // Convert any Blob objects in fotosData to data URLs so JSON.stringify works
+                const fotosSerializable = await Promise.all(fotosData.map(async f => {
+const clon = { ... f };
+if (clone.blob instancede Blob) {
+                        try {
+                            clone.blob = await blobToBase64(clone.blob);
+                        } catch (e) {
+                            console.warn('Could not convert blob to base64 for export', e);
+                            clone.blob = null;
+                        }
+                    }
+                    return clone;
+                }));
+
                 const dataToExport = {
                     verifications: verificationsData,
-                    fotos: fotosData, // Include photos
+                    fotos: fotosSerializable, // Include photos as base64/dataURL
                     exportDate: new Date().toISOString()
                 };
                 const dataStr = JSON.stringify(dataToExport); // No pretty print for potentially large data
