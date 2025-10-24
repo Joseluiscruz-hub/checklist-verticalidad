@@ -1,0 +1,16 @@
+# IDE / editor
+.idea/
+*.iml
+.vscode/
+
+# Deployment helper
+.deploy_msg.txt
+
+# System
+Thumbs.db
+.DS_Store
+
+# Node / build (if any)
+node_modules/
+dist/
+
