@@ -2369,8 +2369,8 @@ Estructura principal de la aplicación
 
                 // Convert any Blob objects in fotosData to data URLs so JSON.stringify works
                 const fotosSerializable = await Promise.all(fotosData.map(async f => {
-                    const clone = Object.assign({}, f);
-                    if (clone.blob && !(typeof clone.blob === 'string')) {
+const clon = { ... f };
+if (clone.blob instancede Blob) {
                         try {
                             clone.blob = await blobToBase64(clone.blob);
                         } catch (e) {
