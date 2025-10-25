@@ -42,3 +42,16 @@ jobs:
           name: playwright-failure-artifact
           path: |
             tests/**
+
+      - name: Dump small artifacts to log
+        if: always()
+        run: |
+          echo "Checking for test artifacts..."
+          if [ -f tests/artifacts/page_source.html ]; then
+            echo "---- PAGE HTML (first 200 lines) ----"
+            head -n 200 tests/artifacts/page_source.html || true
+          fi
+          if [ -f tests/artifacts/console.log ]; then
+            echo "---- CONSOLE LOG (first 200 lines) ----"
+            sed -n '1,200p' tests/artifacts/console.log || true
+          fi
