@@ -15,7 +15,7 @@
     =============================
     -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\');
         /* Paleta de diseño unificada (Coca-Cola FEMSA) */
         :root {
             /* Identidad de Marca */
@@ -34,6 +34,7 @@
             --color-primary: var(--cc-red);
             --color-primary-dark: var(--cc-red-dark);
             --color-accent: var(--cc-green);
+            --color-border: #e5e7eb;
 
             /* Colores de Stats (para modo oscuro también) */
             --color-blue-bg: rgba(59, 130, 246, 0.1);
@@ -55,6 +56,7 @@
                 --color-primary: var(--cc-red);
                 --color-primary-dark: #f87171; /* Red 400 */
                 --color-accent: #34d399; /* Green 400 */
+                --color-border: #374151; /* Gray 700 */
 
                 --color-blue-bg: rgba(96, 165, 250, 0.1);
                 --color-blue-text: #60a5fa;
@@ -68,7 +70,7 @@
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            font-family: \'Inter\', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             background-color: var(--color-background);
             color: var(--color-text);
             -webkit-font-smoothing: antialiased;
@@ -115,7 +117,7 @@
         .section-title { font-weight: 700; color: var(--color-text); margin-bottom: .5rem; }
         .section-subtitle { color: var(--color-text-secondary); font-size: 0.95rem; margin-bottom: 1rem; }
 
-        /* Botones principales */
+        /* Botones */
         .btn-primary {
             background: var(--color-primary);
             color: white;
@@ -131,7 +133,7 @@
         .btn-secondary {
             background: var(--color-surface);
             color: var(--color-text);
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--color-border);
             padding: 0.6rem 1rem;
             border-radius: 10px;
             display: inline-flex;
@@ -139,13 +141,18 @@
             gap: 0.5rem;
             font-weight: 500;
         }
+        .btn-table-action {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
 
         /* Tabla mejorada */
         table { width: 100%; border-collapse: collapse; }
-        thead { background: #f8fafc; }
-        th, td { padding: 0.9rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        thead { background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+        th, td { padding: 0.9rem; text-align: left; border-bottom: 1px solid var(--color-border); }
         th { font-weight: 600; color: var(--color-text); }
         tbody tr:hover { background-color: rgba(0,0,0,0.02); }
+        .actions-cell { display: flex; gap: 0.5rem; align-items: center; }
 
         /* Badges */
         .badge { font-size: 0.85rem; padding: 0.35rem 0.7rem; border-radius: 9999px; font-weight: 600; display: inline-flex; align-items: center; gap: .4rem; }
@@ -161,8 +168,8 @@
         .status-falla { background: var(--color-red-bg); color: var(--color-red-text); }
 
         /* Inputs personalizados */
-        .input { border: 1px solid #e5e7eb; border-radius: 10px; padding: 0.6rem 0.8rem; width: 100%; }
-        .select { border: 1px solid #e5e7eb; border-radius: 10px; padding: 0.6rem 0.8rem; background: white; }
+        .input { border: 1px solid var(--color-border); border-radius: 10px; padding: 0.6rem 0.8rem; width: 100%; background: var(--color-surface); }
+        .select { border: 1px solid var(--color-border); border-radius: 10px; padding: 0.6rem 0.8rem; background: var(--color-surface); }
         .checkbox { width: 18px; height: 18px; }
 
         /* Footer */
@@ -209,15 +216,51 @@
             cursor: pointer;
         }
         .btn:hover { filter: brightness(0.95); }
-        .btn-secondary-plain { background: transparent; color: var(--color-text); border: 1px solid #e5e7eb; }
+        .btn-secondary-plain { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); }
         .btn-primary-solid { background: var(--color-primary); color: white; }
 
         /* Scrollbars sutiles */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+
+        /* Toast (Notificaciones) */
+        #toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 10000;
+        }
+        .toast {
+            background: var(--color-surface);
+            color: var(--color-text);
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast-icon { font-size: 1.2rem; }
+        .toast.toast-success .toast-icon { color: var(--color-green-text); }
+        .toast.toast-warning .toast-icon { color: var(--color-amber-text); }
+        .toast.toast-info .toast-icon { color: var(--color-blue-text); }
+
     </style>
 </head>
 <body class="min-h-screen">
+    <!-- Contenedor de Toasts -->
+    <div id="toast-container"></div>
+
     <!-- Header FEMSA -->
     <div class="header-app">
         <img src="icon.svg" alt="Logo" style="height:24px;">
@@ -456,15 +499,32 @@
     // =============================
 
     function formatFechaHora(fecha = new Date()) {
-        return new Intl.DateTimeFormat('es-MX', {
-            dateStyle: 'medium',
-            timeStyle: 'short'
+        return new Intl.DateTimeFormat(\'es-MX\', {
+            dateStyle: \'medium\',
+            timeStyle: \'short\'
         }).format(fecha);
     }
 
-    function showToast(message, type = 'info') {
-        // Nota: Mantener simple para mínimos cambios. Se podría añadir toast real si se requiere.
-        console.log(`[${type.toUpperCase()}]`, message);
+    function showToast(message, type = \'info\') {
+        const container = document.getElementById(\'toast-container\');
+        const toast = document.createElement(\'div\');
+        toast.className = `toast toast-${type}`;
+        const icons = {
+            info: \'fa-solid fa-circle-info\',
+            success: \'fa-solid fa-check-circle\',
+            warning: \'fa-solid fa-triangle-exclamation\'
+        };
+        toast.innerHTML = `<i class="toast-icon ${icons[type]}"></i><span>${message}</span>`;
+        container.appendChild(toast);
+
+        // Mostrar
+        setTimeout(() => toast.classList.add(\'show\'), 100);
+
+        // Ocultar y eliminar
+        setTimeout(() => {
+            toast.classList.remove(\'show\');
+            toast.addEventListener(\'transitionend\', () => toast.remove());
+        }, 3000);
     }
 
     // =============================
@@ -472,22 +532,22 @@
     // =============================
 
     const STORAGE_KEYS = {
-        registros: 'checklist_registros_v1',
-        ultimoOperador: 'checklist_operador_v1',
-        ultimaLinea: 'checklist_linea_v1'
+        registros: \'checklist_registros_v1\',
+        ultimoOperador: \'checklist_operador_v1\',
+        ultimaLinea: \'checklist_linea_v1\'
     };
 
     const Storage = {
         save(key, value) {
             try { localStorage.setItem(key, JSON.stringify(value)); }
-            catch (e) { console.error('Error guardando en localStorage', e); }
+            catch (e) { console.error(\'Error guardando en localStorage\', e); }
         },
         load(key, fallback = null) {
             try {
                 const raw = localStorage.getItem(key);
                 return raw ? JSON.parse(raw) : fallback;
             } catch (e) {
-                console.error('Error leyendo de localStorage', e);
+                console.error(\'Error leyendo de localStorage\', e);
                 return fallback;
             }
         }
@@ -504,43 +564,43 @@
     // =============================
     const el = (id) => document.getElementById(id);
 
-    const datetimeEl = el('datetime');
-    const operadorNombreEl = el('operadorNombre');
-    const lineaTrabajoEl = el('lineaTrabajo');
+    const datetimeEl = el(\'datetime\');
+    const operadorNombreEl = el(\'operadorNombre\');
+    const lineaTrabajoEl = el(\'lineaTrabajo\');
 
-    const btnNuevoChecklist = el('btnNuevoChecklist');
-    const btnCapturarSKU = el('btnCapturarSKU');
-    const btnIngresarMedicion = el('btnIngresarMedicion');
-    const btnGenerarReporte = el('btnGenerarReporte');
-    const btnExportarExcel = el('btnExportarExcel');
+    const btnNuevoChecklist = el(\'btnNuevoChecklist\');
+    const btnCapturarSKU = el(\'btnCapturarSKU\');
+    const btnIngresarMedicion = el(\'btnIngresarMedicion\');
+    const btnGenerarReporte = el(\'btnGenerarReporte\');
+    const btnExportarExcel = el(\'btnExportarExcel\');
 
-    const btnLimpiarTabla = el('btnLimpiarTabla');
-    const btnRecargarDatos = el('btnRecargarDatos');
+    const btnLimpiarTabla = el(\'btnLimpiarTabla\');
+    const btnRecargarDatos = el(\'btnRecargarDatos\');
 
-    const tablaBody = el('tablaRegistrosBody');
+    const tablaBody = el(\'tablaRegistrosBody\');
 
     // Modales
-    const confirmModal = el('confirmModal');
-    const okConfirmBtn = el('okConfirm');
-    const cancelConfirmBtn = el('cancelConfirm');
+    const confirmModal = el(\'confirmModal\');
+    const okConfirmBtn = el(\'okConfirm\');
+    const cancelConfirmBtn = el(\'cancelConfirm\');
 
-    const dataModal = el('dataModal');
-    const okDataBtn = el('okData');
-    const cancelDataBtn = el('cancelData');
-    const modalSku = el('modalSku');
-    const modalLote = el('modalLote');
-    const modalObservaciones = el('modalObservaciones');
+    const dataModal = el(\'dataModal\');
+    const okDataBtn = el(\'okData\');
+    const cancelDataBtn = el(\'cancelData\');
+    const modalSku = el(\'modalSku\');
+    const modalLote = el(\'modalLote\');
+    const modalObservaciones = el(\'modalObservaciones\');
 
-    const medicionModal = el('medicionModal');
-    const okMedicionBtn = el('okMedicion');
-    const cancelMedicionBtn = el('cancelMedicion');
-    const modalMedicion = el('modalMedicion');
-    const modalEstibado = el('modalEstibado');
+    const medicionModal = el(\'medicionModal\');
+    const okMedicionBtn = el(\'okMedicion\');
+    const cancelMedicionBtn = el(\'cancelMedicion\');
+    const modalMedicion = el(\'modalMedicion\');
+    const modalEstibado = el(\'modalEstibado\');
 
-    const qrModal = el('qrModal');
-    const cancelQrBtn = el('cancelQr');
+    const qrModal = el(\'qrModal\');
+    const cancelQrBtn = el(\'cancelQr\');
 
-    const modalBackdrop = el('modalBackdrop');
+    const modalBackdrop = el(\'modalBackdrop\');
 
     // =============================
     // Inicialización
@@ -558,13 +618,13 @@
         setInterval(renderFechaHora, 30000);
 
         // Listeners básicos
-        btnNuevoChecklist.addEventListener('click', onNuevoChecklist);
-        btnCapturarSKU.addEventListener('click', onCapturarSku);
-        btnIngresarMedicion.addEventListener('click', onIngresarMedicion);
-        btnGenerarReporte.addEventListener('click', onGenerarReporte);
-        btnExportarExcel.addEventListener('click', onExportarExcel);
-        btnLimpiarTabla.addEventListener('click', onLimpiarTabla);
-        btnRecargarDatos.addEventListener('click', onRecargarDatos);
+        btnNuevoChecklist.addEventListener(\'click\', onNuevoChecklist);
+        btnCapturarSKU.addEventListener(\'click\', onCapturarSku);
+        btnIngresarMedicion.addEventListener(\'click\', onIngresarMedicion);
+        btnGenerarReporte.addEventListener(\'click\', onGenerarReporte);
+        btnExportarExcel.addEventListener(\'click\', onExportarExcel);
+        btnLimpiarTabla.addEventListener(\'click\', onLimpiarTabla);
+        btnRecargarDatos.addEventListener(\'click\', onRecargarDatos);
 
         // Render inicial de tabla y stats
         renderTabla();
@@ -586,7 +646,7 @@
 
         if (!operador) {
             // Guardamos lo que intentó
-            showToast('Por favor, ingresa el nombre del operador', 'warning');
+            showToast(\'Por favor, ingresa el nombre del operador\', \'warning\');
             operadorNombreEl.focus();
             return;
         }
@@ -596,7 +656,7 @@
         Storage.save(STORAGE_KEYS.ultimaLinea, linea);
 
         // Abrimos modal para capturar SKU/Lote/Obs
-        const datos = await showDataCaptureModal({ sku: '', lote: '', observaciones: '' });
+        const datos = await showDataCaptureModal({ sku: \'\', lote: \'\', observaciones: \'\' });
         if (!datos) return; // cancelado
 
         // Tras capturar datos, pedimos medición
@@ -604,7 +664,7 @@
         if (!medicion) return; // cancelado
 
         // Confirmar guardado
-        const ok = await confirmAction('Guardar Registro', '¿Deseas guardar este registro en la tabla?');
+        const ok = await confirmAction(\'Guardar Registro\', \'¿Deseas guardar este registro en la tabla?\');
         if (!ok) return;
 
         // Guardar registro
@@ -624,12 +684,12 @@
         renderStats();
         renderChart();
 
-        showToast('Registro guardado correctamente', 'success');
+        showToast(\'Registro guardado correctamente\', \'success\');
     }
 
     async function onCapturarSku() {
         // Este botón abre el escáner QR para capturar y rellenar SKU/Lote
-        const ok = await confirmAction('Capturar Código', '¿Deseas abrir el escáner de código para capturar SKU/Lote?');
+        const ok = await confirmAction(\'Capturar Código\', \'¿Deseas abrir el escáner de código para capturar SKU/Lote?\');
         if (!ok) return;
         await showQrScanner();
     }
@@ -637,7 +697,7 @@
     async function onIngresarMedicion() {
         const resultado = await showMedicionModal();
         if (!resultado) return;
-        showToast(`Medición guardada temporalmente: ${resultado.medicion}° (${resultado.estibado})`, 'info');
+        showToast(`Medición guardada temporalmente: ${resultado.medicion}° (${resultado.estibado})`, \'info\');
     }
 
     function onGenerarReporte() {
@@ -651,38 +711,38 @@
             Verticalidad: r.verticalidad,
             Estibado: r.estibado,
         })));
-        showToast('Reporte generado en la consola del navegador', 'info');
+        showToast(\'Reporte generado en la consola del navegador\', \'info\');
     }
 
     function onExportarExcel() {
         // Exportar CSV básico (compatible con Excel)
-        if (!registros.length) { showToast('No hay registros para exportar', 'warning'); return; }
-        const headers = ['Fecha','Operador','Línea','SKU','Lote','Verticalidad','Estibado','Observaciones'];
+        if (!registros.length) { showToast(\'No hay registros para exportar\', \'warning\'); return; }
+        const headers = [\'Fecha\',\'Operador\',\'Línea\',\'SKU\',\'Lote\',\'Verticalidad\',\'Estibado\',\'Observaciones\'];
         const rows = registros.map(r => [
-            formatFechaHora(new Date(r.fecha)), r.operador, r.linea, r.sku, r.lote, r.verticalidad, r.estibado, (r.observaciones||'').replace(/\n/g, ' ')
+            formatFechaHora(new Date(r.fecha)), r.operador, r.linea, r.sku, r.lote, r.verticalidad, r.estibado, (r.observaciones||\'\').replace(/\\n/g, \' \')
         ]);
-        const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const csv = [headers, ...rows].map(row => row.map(cell => `\"${String(cell).replace(/\"/g, \'\"\"\')}\"`).join(\',\')).join(\'\\n\');
+        const blob = new Blob([\"\\uFEFF\" + csv], { type: \'text/csv;charset=utf-8;\' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement(\'a\');
         a.href = url;
         a.download = `checklist_verticalidad_${new Date().toISOString().slice(0,10)}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast('Archivo CSV exportado', 'success');
+        showToast(\'Archivo CSV exportado\', \'success\');
     }
 
     async function onLimpiarTabla() {
-        const ok = await confirmAction('Limpiar Registros', '¿Deseas eliminar todos los registros? Esta acción no se puede deshacer.');
+        const ok = await confirmAction(\'Limpiar Registros\', \'¿Deseas eliminar todos los registros? Esta acción no se puede deshacer.\');
         if (!ok) return;
         registros = [];
         Storage.save(STORAGE_KEYS.registros, registros);
         renderTabla();
         renderStats();
         renderChart();
-        showToast('Tabla de registros limpiada', 'success');
+        showToast(\'Tabla de registros limpiada\', \'success\');
     }
 
     function onRecargarDatos() {
@@ -690,7 +750,7 @@
         renderTabla();
         renderStats();
         renderChart();
-        showToast('Datos recargados desde almacenamiento local', 'info');
+        showToast(\'Datos recargados desde almacenamiento local\', \'info\');
     }
 
     // =============================
@@ -698,13 +758,13 @@
     // =============================
 
     function renderTabla() {
-        tablaBody.innerHTML = '';
+        tablaBody.innerHTML = \'\';
         if (!registros || !registros.length) {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
+            const tr = document.createElement(\'tr\');
+            const td = document.createElement(\'td\');
             td.colSpan = 9;
-            td.className = 'text-center text-slate-500 p-4';
-            td.textContent = 'No hay registros disponibles';
+            td.className = \'text-center text-slate-500 p-4\';
+            td.textContent = \'No hay registros disponibles\';
             tr.appendChild(td);
             tablaBody.appendChild(tr);
             return;
@@ -714,27 +774,29 @@
             .slice()
             .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
             .forEach(reg => {
-                const tr = document.createElement('tr');
+                const tr = document.createElement(\'tr\');
                 tr.innerHTML = `
                     <td>${formatFechaHora(new Date(reg.fecha))}</td>
                     <td>${reg.operador}</td>
                     <td>${reg.linea}</td>
-                    <td>${reg.sku || '-'}</td>
-                    <td>${reg.lote || '-'}</td>
-                    <td>${reg.verticalidad ?? '-'}</td>
+                    <td>${reg.sku || \'-\'}</td>
+                    <td>${reg.lote || \'-\'}</td>
+                    <td>${reg.verticalidad ?? \'-\'}</td>
                     <td>
-                        <span class="status-badge ${reg.estibado === 'Correcto' ? 'status-ok' : 'status-falla'}">
-                            <i class="fa-solid ${reg.estibado === 'Correcto' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
-                            ${reg.estibado || '-'}
+                        <span class="status-badge ${reg.estibado === \'Correcto\' ? \'status-ok\' : \'status-falla\'}\">
+                            <i class="fa-solid ${reg.estibado === \'Correcto\' ? \'fa-circle-check\' : \'fa-circle-xmark\'}\"></i>
+                            ${reg.estibado || \'-\'}
                         </span>
                     </td>
-                    <td>${reg.observaciones ? reg.observaciones.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '-'}</td>
-                    <td>
-                        <button class="btn-secondary btnEditar" data-id="${reg.id}">
+                    <td>${reg.observaciones ? reg.observaciones.replace(/</g, \'&lt;\').replace(/>/g, \'&gt;\') : \'-\'}</td>
+                    <td class="actions-cell">
+                        <button class="btn-secondary btn-table-action btnEditar" data-id="${reg.id}">
                             <i class="fa-solid fa-pen"></i>
+                            <span class="hidden sm:inline">Editar</span>
                         </button>
-                        <button class="btn-secondary btnEliminar" data-id="${reg.id}">
+                        <button class="btn-secondary btn-table-action btnEliminar" data-id="${reg.id}">
                             <i class="fa-solid fa-trash"></i>
+                            <span class="hidden sm:inline">Eliminar</span>
                         </button>
                     </td>
                 `;
@@ -742,22 +804,23 @@
             });
 
         // Listeners por fila
-        tablaBody.querySelectorAll('.btnEliminar').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = e.currentTarget.getAttribute('data-id');
-                const ok = await confirmAction('Eliminar Registro', '¿Confirmas eliminar este registro?');
+        tablaBody.querySelectorAll(\'.btnEliminar\').forEach(btn => {
+            btn.addEventListener(\'click\', async (e) => {
+                const id = e.currentTarget.getAttribute(\'data-id\');
+                const ok = await confirmAction(\'Eliminar Registro\', \'¿Confirmas eliminar este registro?\');
                 if (!ok) return;
                 registros = registros.filter(r => r.id !== id);
                 Storage.save(STORAGE_KEYS.registros, registros);
                 renderTabla();
                 renderStats();
                 renderChart();
+                showToast(\'Registro eliminado\', \'success\');
             });
         });
 
-        tablaBody.querySelectorAll('.btnEditar').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = e.currentTarget.getAttribute('data-id');
+        tablaBody.querySelectorAll(\'.btnEditar\').forEach(btn => {
+            btn.addEventListener(\'click\', async (e) => {
+                const id = e.currentTarget.getAttribute(\'data-id\');
                 const reg = registros.find(r => r.id === id);
                 if (!reg) return;
 
@@ -774,6 +837,7 @@
                 renderTabla();
                 renderStats();
                 renderChart();
+                showToast(\'Registro actualizado\', \'success\');
             });
         });
     }
@@ -788,20 +852,20 @@
         const promedio = verticalidades.length
             ? (verticalidades.reduce((a, b) => a + b, 0) / verticalidades.length)
             : 0;
-        const alertas = registros.filter(r => r.estibado === 'Incorrecto' || Number(r.verticalidad) > 2).length;
+        const alertas = registros.filter(r => r.estibado === \'Incorrecto\' || Number(r.verticalidad) > 2).length;
 
-        document.getElementById('statTotalMediciones').textContent = total;
-        document.getElementById('statPromedioVerticalidad').textContent = `${promedio.toFixed(1)}°`;
-        document.getElementById('statAlertas').textContent = alertas;
+        document.getElementById(\'statTotalMediciones\').textContent = total;
+        document.getElementById(\'statPromedioVerticalidad\').textContent = `${promedio.toFixed(1)}°`;
+        document.getElementById(\'statAlertas\').textContent = alertas;
     }
 
     let chart;
     function renderChart() {
-        const ctx = document.getElementById('chartVerticalidad').getContext('2d');
+        const ctx = document.getElementById(\'chartVerticalidad\').getContext(\'2d\');
         const labels = registros
             .slice()
             .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
-            .map(r => new Date(r.fecha).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }));
+            .map(r => new Date(r.fecha).toLocaleTimeString(\'es-MX\', { hour: \'2-digit\', minute: \'2-digit\' }));
         const data = registros
             .slice()
             .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
@@ -815,14 +879,14 @@
         }
 
         chart = new Chart(ctx, {
-            type: 'line',
+            type: \'line\',
             data: {
                 labels,
                 datasets: [{
-                    label: 'Verticalidad (°)',
+                    label: \'Verticalidad (°)\',
                     data,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderColor: \'#ef4444\',
+                    backgroundColor: \'rgba(239, 68, 68, 0.1)\',
                     tension: 0.4,
                     fill: true,
                 }]
@@ -847,54 +911,54 @@
     // Control genérico de modales con promesas
     function showModal(modalId) {
         const modal = document.getElementById(modalId);
-        const backdrop = document.getElementById('modalBackdrop');
+        const backdrop = document.getElementById(\'modalBackdrop\');
         if (!modal) return Promise.resolve(false);
 
-        modal.classList.add('active');
-        backdrop.classList.add('active');
+        modal.classList.add(\'active\');
+        backdrop.classList.add(\'active\');
 
         return {
             close() {
-                modal.classList.remove('active');
-                backdrop.classList.remove('active');
+                modal.classList.remove(\'active\');
+                backdrop.classList.remove(\'active\');
             }
         };
     }
 
-    function confirmAction(title = 'Confirmar', message = '¿Seguro?') {
+    function confirmAction(title = \'Confirmar\', message = \'¿Seguro?\') {
         return new Promise((resolve) => {
-            const modal = document.getElementById('confirmModal');
-            const titleEl = document.getElementById('confirmModalTitle');
-            const messageEl = document.getElementById('confirmModalMessage');
-            const okBtn = document.getElementById('okConfirm');
-            const cancelBtn = document.getElementById('cancelConfirm');
-            const backdrop = document.getElementById('modalBackdrop');
+            const modal = document.getElementById(\'confirmModal\');
+            const titleEl = document.getElementById(\'confirmModalTitle\');
+            const messageEl = document.getElementById(\'confirmModalMessage\');
+            const okBtn = document.getElementById(\'okConfirm\');
+            const cancelBtn = document.getElementById(\'cancelConfirm\');
+            const backdrop = document.getElementById(\'modalBackdrop\');
 
             // Store existing focused element to restore later
             const previouslyFocusedElement = document.activeElement;
 
             titleEl.textContent = title;
             messageEl.textContent = message;
-            modal.classList.add('active');
+            modal.classList.add(\'active\');
 
-            backdrop.classList.add('active');
+            backdrop.classList.add(\'active\');
 
             // Focus management for accessibility - focus OK button by default
             okBtn.focus();
 
             const cleanup = (result) => {
-                modal.classList.remove('active');
+                modal.classList.remove(\'active\');
                 // Hide backdrop only if no other modal is active
-                if (!document.querySelector('.modal.active')) {
-                    backdrop.classList.remove('active');
+                if (!document.querySelector(\'.modal.active\')) {
+                    backdrop.classList.remove(\'active\');
                 }
                 // Remove listeners to prevent memory leaks
-                okBtn.removeEventListener('click', handleOk);
-                cancelBtn.removeEventListener('click', handleCancel);
-                document.removeEventListener('keydown', handleKeyDown);
+                okBtn.removeEventListener(\'click\', handleOk);
+                cancelBtn.removeEventListener(\'click\', handleCancel);
+                document.removeEventListener(\'keydown\', handleKeyDown);
 
                 // Restore focus
-                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === \'function\') {
                     // Try/catch just in case the element is no longer focusable
                     try { previouslyFocusedElement.focus(); } catch (e) { console.warn("Could not restore focus"); }
                 }
@@ -906,9 +970,9 @@
             const handleOk = () => cleanup(true);
             const handleCancel = () => cleanup(false);
             const handleKeyDown = (event) => {
-                if (event.key === 'Escape') {
+                if (event.key === \'Escape\') {
                     handleCancel();
-                } else if (event.key === 'Tab') {
+                } else if (event.key === \'Tab\') {
                     // Basic focus trapping (can be enhanced)
                     const focusableElements = [cancelBtn, okBtn];
                     const currentIndex = focusableElements.indexOf(document.activeElement);
@@ -924,47 +988,47 @@
             };
 
             // Add listeners
-            okBtn.addEventListener('click', handleOk, { once: true });
-            cancelBtn.addEventListener('click', handleCancel, { once: true });
-            document.addEventListener('keydown', handleKeyDown);
+            okBtn.addEventListener(\'click\', handleOk, { once: true });
+            cancelBtn.addEventListener(\'click\', handleCancel, { once: true });
+            document.addEventListener(\'keydown\', handleKeyDown);
 
         });
     }
 
-    function showDataCaptureModal(initial = { sku: '', lote: '', observaciones: '' }) {
+    function showDataCaptureModal(initial = { sku: \'\', lote: \'\', observaciones: \'\' }) {
         return new Promise((resolve) => {
-            const modal = document.getElementById('dataModal');
-            const okBtn = document.getElementById('okData');
-            const cancelBtn = document.getElementById('cancelData');
-            const backdrop = document.getElementById('modalBackdrop');
+            const modal = document.getElementById(\'dataModal\');
+            const okBtn = document.getElementById(\'okData\');
+            const cancelBtn = document.getElementById(\'cancelData\');
+            const backdrop = document.getElementById(\'modalBackdrop\');
 
-            const skuEl = document.getElementById('modalSku');
-            const loteEl = document.getElementById('modalLote');
-            const obsEl = document.getElementById('modalObservaciones');
+            const skuEl = document.getElementById(\'modalSku\');
+            const loteEl = document.getElementById(\'modalLote\');
+            const obsEl = document.getElementById(\'modalObservaciones\');
 
             // Focus management
             const previouslyFocusedElement = document.activeElement;
 
-            skuEl.value = initial.sku || '';
-            loteEl.value = initial.lote || '';
-            obsEl.value = initial.observaciones || '';
+            skuEl.value = initial.sku || \'\';
+            loteEl.value = initial.lote || \'\';
+            obsEl.value = initial.observaciones || \'\';
 
-            modal.classList.add('active');
-            backdrop.classList.add('active');
+            modal.classList.add(\'active\');
+            backdrop.classList.add(\'active\');
 
             skuEl.focus();
 
             const cleanup = (result) => {
-                modal.classList.remove('active');
-                if (!document.querySelector('.modal.active')) {
-                    backdrop.classList.remove('active');
+                modal.classList.remove(\'active\');
+                if (!document.querySelector(\'.modal.active\')) {
+                    backdrop.classList.remove(\'active\');
                 }
-                okBtn.removeEventListener('click', handleOk);
-                cancelBtn.removeEventListener('click', handleCancel);
-                document.removeEventListener('keydown', handleKeyDown);
+                okBtn.removeEventListener(\'click\', handleOk);
+                cancelBtn.removeEventListener(\'click\', handleCancel);
+                document.removeEventListener(\'keydown\', handleKeyDown);
 
-                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
-                    try { previouslyFocusedElement.focus(); } catch {}
+                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === \'function\') {
+                    try { previouslyFocusedElement.focus(); } catch {}\
                 }
 
                 resolve(result);
@@ -975,46 +1039,46 @@
             };
             const handleCancel = () => cleanup(false);
             const handleKeyDown = (event) => {
-                if (event.key === 'Escape') handleCancel();
+                if (event.key === \'Escape\') handleCancel();
             };
 
-            okBtn.addEventListener('click', handleOk, { once: true });
-            cancelBtn.addEventListener('click', handleCancel, { once: true });
-            document.addEventListener('keydown', handleKeyDown);
+            okBtn.addEventListener(\'click\', handleOk, { once: true });
+            cancelBtn.addEventListener(\'click\', handleCancel, { once: true });
+            document.addEventListener(\'keydown\', handleKeyDown);
         });
     }
 
-    function showMedicionModal(initial = { medicion: '', estibado: 'Correcto' }) {
+    function showMedicionModal(initial = { medicion: \'\', estibado: \'Correcto\' }) {
         return new Promise((resolve) => {
-            const modal = document.getElementById('medicionModal');
-            const okBtn = document.getElementById('okMedicion');
-            const cancelBtn = document.getElementById('cancelMedicion');
-            const backdrop = document.getElementById('modalBackdrop');
+            const modal = document.getElementById(\'medicionModal\');
+            const okBtn = document.getElementById(\'okMedicion\');
+            const cancelBtn = document.getElementById(\'cancelMedicion\');
+            const backdrop = document.getElementById(\'modalBackdrop\');
 
-            const medicionEl = document.getElementById('modalMedicion');
-            const estibadoEl = document.getElementById('modalEstibado');
+            const medicionEl = document.getElementById(\'modalMedicion\');
+            const estibadoEl = document.getElementById(\'modalEstibado\');
 
             const previouslyFocusedElement = document.activeElement;
 
-            medicionEl.value = initial.medicion || '';
-            estibadoEl.value = initial.estibado || 'Correcto';
+            medicionEl.value = initial.medicion || \'\';
+            estibadoEl.value = initial.estibado || \'Correcto\';
 
-            modal.classList.add('active');
-            backdrop.classList.add('active');
+            modal.classList.add(\'active\');
+            backdrop.classList.add(\'active\');
 
             medicionEl.focus();
 
             const cleanup = (result) => {
-                modal.classList.remove('active');
-                if (!document.querySelector('.modal.active')) {
-                    backdrop.classList.remove('active');
+                modal.classList.remove(\'active\');
+                if (!document.querySelector(\'.modal.active\')) {
+                    backdrop.classList.remove(\'active\');
                 }
-                okBtn.removeEventListener('click', handleOk);
-                cancelBtn.removeEventListener('click', handleCancel);
-                document.removeEventListener('keydown', handleKeyDown);
+                okBtn.removeEventListener(\'click\', handleOk);
+                cancelBtn.removeEventListener(\'click\', handleCancel);
+                document.removeEventListener(\'keydown\', handleKeyDown);
 
-                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
-                    try { previouslyFocusedElement.focus(); } catch {}
+                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === \'function\') {
+                    try { previouslyFocusedElement.focus(); } catch {}\
                 }
 
                 resolve(result);
@@ -1026,48 +1090,48 @@
                 cleanup({ medicion: val, estibado: estibadoEl.value });
             };
             const handleCancel = () => cleanup(false);
-            const handleKeyDown = (event) => { if (event.key === 'Escape') handleCancel(); };
+            const handleKeyDown = (event) => { if (event.key === \'Escape\') handleCancel(); };
 
-            okBtn.addEventListener('click', handleOk, { once: true });
-            cancelBtn.addEventListener('click', handleCancel, { once: true });
-            document.addEventListener('keydown', handleKeyDown);
+            okBtn.addEventListener(\'click\', handleOk, { once: true });
+            cancelBtn.addEventListener(\'click\', handleCancel, { once: true });
+            document.addEventListener(\'keydown\', handleKeyDown);
         });
     }
 
     async function showQrScanner() {
         return new Promise((resolve) => {
-            const modal = document.getElementById('qrModal');
-            const backdrop = document.getElementById('modalBackdrop');
-            const cancelBtn = document.getElementById('cancelQr');
+            const modal = document.getElementById(\'qrModal\');
+            const backdrop = document.getElementById(\'modalBackdrop\');
+            const cancelBtn = document.getElementById(\'cancelQr\');
 
             const previouslyFocusedElement = document.activeElement;
 
-            modal.classList.add('active');
-            backdrop.classList.add('active');
+            modal.classList.add(\'active\');
+            backdrop.classList.add(\'active\');
 
             const html5QrcodeScanner = new Html5Qrcode("reader");
             const qrConfig = { fps: 10, qrbox: 250 };
 
             function onScanSuccess(decodedText) {
                 // Intentamos parsear potencial formato SKU|LOTE
-                const parts = decodedText.split('|');
+                const parts = decodedText.split(\'|\');
                 if (parts.length >= 2) {
-                    el('modalSku').value = parts[0];
-                    el('modalLote').value = parts[1];
+                    el(\'modalSku\').value = parts[0];
+                    el(\'modalLote\').value = parts[1];
                 } else {
-                    el('modalSku').value = decodedText;
+                    el(\'modalSku\').value = decodedText;
                 }
                 html5QrcodeScanner.stop().then(() => {
-                    modal.classList.remove('active');
-                    if (!document.querySelector('.modal.active')) {
-                        backdrop.classList.remove('active');
+                    modal.classList.remove(\'active\');
+                    if (!document.querySelector(\'.modal.active\')) {
+                        backdrop.classList.remove(\'active\');
                     }
-                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
-                        try { previouslyFocusedElement.focus(); } catch {}
+                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === \'function\') {
+                        try { previouslyFocusedElement.focus(); } catch {}\
                     }
                     resolve(true);
                 }).catch(err => {
-                    console.error('Error al detener el escáner:', err);
+                    console.error(\'Error al detener el escáner:\', err);
                     resolve(false);
                 });
             }
@@ -1076,20 +1140,20 @@
                 // Intencionalmente silencioso para evitar spam en consola
             }
 
-            html5QrcodeScanner.start({ facingMode: 'environment' }, qrConfig, onScanSuccess, onScanFailure);
+            html5QrcodeScanner.start({ facingMode: \'environment\' }, qrConfig, onScanSuccess, onScanFailure);
 
-            cancelBtn.addEventListener('click', () => {
+            cancelBtn.addEventListener(\'click\', () => {
                 html5QrcodeScanner.stop().then(() => {
-                    modal.classList.remove('active');
-                    if (!document.querySelector('.modal.active')) {
-                        backdrop.classList.remove('active');
+                    modal.classList.remove(\'active\');
+                    if (!document.querySelector(\'.modal.active\')) {
+                        backdrop.classList.remove(\'active\');
                     }
-                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
-                        try { previouslyFocusedElement.focus(); } catch {}
+                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === \'function\') {
+                        try { previouslyFocusedElement.focus(); } catch {}\
                     }
                     resolve(false);
                 }).catch(err => {
-                    console.error('Error al detener el escáner:', err);
+                    console.error(\'Error al detener el escáner:\', err);
                     resolve(false);
                 });
             }, { once: true });
@@ -1100,84 +1164,7 @@
     // Inicio
     // =============================
 
-    document.addEventListener('DOMContentLoaded', init);
-</script>
-
-<!-- Mejoras de accesibilidad y robustez del modal de confirmación -->
-<script>
-    function confirmAction(title = 'Confirmar', message = '¿Seguro?') {
-        return new Promise((resolve) => {
-            const modal = document.getElementById('confirmModal');
-            const titleEl = document.getElementById('confirmModalTitle');
-            const messageEl = document.getElementById('confirmModalMessage');
-            const okBtn = document.getElementById('okConfirm');
-            const cancelBtn = document.getElementById('cancelConfirm');
-            const backdrop = document.getElementById('modalBackdrop');
-
-            // Store existing focused element to restore later
-            const previouslyFocusedElement = document.activeElement;
-
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-            modal.classList.add('active');
-
-            backdrop.classList.add('active');
-
-             // Focus management for accessibility - focus OK button by default
-             okBtn.focus();
-
-
-            const cleanup = (result) => {
-                modal.classList.remove('active');
-                // Hide backdrop only if no other modal is active
-                if (!document.querySelector('.modal.active')) {
-                    backdrop.classList.remove('active');
-                }
-                // Remove listeners to prevent memory leaks
-                okBtn.removeEventListener('click', handleOk);
-                cancelBtn.removeEventListener('click', handleCancel);
-                document.removeEventListener('keydown', handleKeyDown);
-
-
-                // Restore focus
-                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
-                    // Try/catch just in case the element is no longer focusable
-                    try { previouslyFocusedElement.focus(); } catch (e) { console.warn("Could not restore focus"); }
-                }
-
-                resolve(result);
-            };
-
-             // Define handlers separately to allow removal
-             const handleOk = () => cleanup(true);
-             const handleCancel = () => cleanup(false);
-             const handleKeyDown = (event) => {
-                if (event.key === 'Escape') {
-                    handleCancel();
-                } else if (event.key === 'Tab') {
-                     // Basic focus trapping (can be enhanced)
-                     const focusableElements = [cancelBtn, okBtn];
-                     const currentIndex = focusableElements.indexOf(document.activeElement);
-                     let nextIndex;
-                     if (event.shiftKey) {
-                         nextIndex = (currentIndex - 1 + focusableElements.length) % focusableElements.length;
-                     } else {
-                         nextIndex = (currentIndex + 1) % focusableElements.length;
-                     }
-                     event.preventDefault();
-                     focusableElements[nextIndex].focus();
-                }
-            };
-
-
-            // Add listeners
-            okBtn.addEventListener('click', handleOk, { once: true });
-            cancelBtn.addEventListener('click', handleCancel, { once: true });
-            document.addEventListener('keydown', handleKeyDown);
-
-        });
-    }
-
+    document.addEventListener(\'DOMContentLoaded\', init);
 </script>
 
 </body>
