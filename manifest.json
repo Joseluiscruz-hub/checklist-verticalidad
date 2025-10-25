@@ -2,7 +2,7 @@
   "name": "Checklist de Verticalidad y Estibado",
   "short_name": "Checklist",
   "description": "Aplicación para verificar verticalidad y estibado de productos Coca-Cola FEMSA",
-  "start_url": "/Vertical.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#f5f5f5",
   "theme_color": "#ed1c24",
