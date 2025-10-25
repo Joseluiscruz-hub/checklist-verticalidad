@@ -1323,17 +1323,24 @@ Estructura principal de la aplicación
 
                         let photosHtml = '<h4 class="text-md font-semibold mt-6 mb-3 border-t dark:border-gray-600 pt-4">Fotos Adjuntas</h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4">';
                         if (photos && photos.length > 0) {
-                            photos.forEach(photo => {
-                                const param = parametrosChecklist.find(p => p.nombre === photo.parametro);
-                                const altText = `Foto de ${param?.pregunta || 'evidencia'}`;
-                                photosHtml += `
-                                <div class="text-center">
-                                    <a href="${photo.blob}" target="_blank" title="Ver imagen completa" class="block border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden hover:border-sky-500 transition">
-                                        <img src="${photo.blob}" class="w-full h-32 object-cover" alt="${altText}">
-                                    </a>
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${param?.pregunta || 'Evidencia'}</p>
-                                </div>`;
-                            });
+                                photos.forEach(photo => {
+                                    const param = parametrosChecklist.find(p => p.nombre === photo.parametro);
+                                    const altText = `Foto de ${param?.pregunta || 'evidencia'}`;
+                                    // Support blobs (new) and dataURL strings (legacy)
+                                    let src = '';
+                                    if (photo.blob instanceof Blob) {
+                                        src = createObjectUrl(photo.blob);
+                                    } else if (typeof photo.blob === 'string') {
+                                        src = photo.blob;
+                                    }
+                                    photosHtml += `
+                                    <div class="text-center">
+                                        <a href="${src}" target="_blank" title="Ver imagen completa" class="block border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden hover:border-sky-500 transition">
+                                            <img src="${src}" class="w-full h-32 object-cover" alt="${altText}">
+                                        </a>
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${param?.pregunta || 'Evidencia'}</p>
+                                    </div>`;
+                                });
                         } else {
                             photosHtml += '<p class="col-span-full text-sm text-gray-500 dark:text-gray-400">No hay fotos para esta verificación.</p>';
                         }
@@ -1439,83 +1446,82 @@ Estructura principal de la aplicación
         // Actualiza el gráfico de estadísticas
         // =============================
         function updateStatsChart(data) {
-            const ctx = document.getElementById('stats-chart');
-            if (!ctx) return; // Exit if canvas not found
-            const context = ctx.getContext('2d');
-            if (!context) return; // Exit if context cannot be obtained
-
+            const canvas = document.getElementById('stats-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext && canvas.getContext('2d');
+            if (!ctx) return;
 
             if (statsChart) {
-                statsChart.destroy();
+                try { statsChart.destroy(); } catch (e) { /* ignore destroy errors */ }
             }
 
-            // Handle case with zero data to avoid Chart.js errors/warnings
-            const total = data.ok + data.error;
+            const total = (data && typeof data.ok === 'number' ? data.ok : 0) + (data && typeof data.error === 'number' ? data.error : 0);
             if (total === 0) {
-                // Optionally display a message on the canvas or hide it
-                context.clearRect(0, 0, ctx.width, ctx.height);
-                context.textAlign = 'center';
-                context.fillStyle = getComputedStyle(document.body).getPropertyValue('--color-text-secondary') || '#888';
-                context.fillText('No hay datos para mostrar', ctx.width / 2, ctx.height / 2);
-                statsChart = null; // Ensure chart instance is cleared
+                try {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--color-text-secondary') || '#888';
+                    ctx.fillText('No hay datos para mostrar', canvas.width / 2, canvas.height / 2);
+                } catch (e) { /* drawing may fail in some contexts */ }
+                statsChart = null;
                 return;
             }
 
+            const green = getComputedStyle(document.documentElement).getPropertyValue('--color-green-text') || 'rgba(16, 185, 129, 0.7)';
+            const red = getComputedStyle(document.documentElement).getPropertyValue('--color-red-text') || 'rgba(239, 68, 68, 0.7)';
+            const surface = getComputedStyle(document.documentElement).getPropertyValue('--color-surface') || '#fff';
+            const textColor = getComputedStyle(document.body).getPropertyValue('--color-text') || '#333';
 
-            statsChart = new Chart(context, {
+            const cfg = {
                 type: 'doughnut',
                 data: {
                     labels: ['OK', 'Con Incidencias'],
                     datasets: [{
-                        label: 'Estado', // Simpler label
+                        label: 'Estado',
                         data: [data.ok, data.error],
-                        backgroundColor: [
-                            getComputedStyle(document.documentElement).getPropertyValue('--color-green-text') || 'rgba(16, 185, 129, 0.7)', // Use CSS var if possible
-                            getComputedStyle(document.documentElement).getPropertyValue('--color-red-text') || 'rgba(239, 68, 68, 0.7)'
-                        ],
-                        borderColor: [ // Use surface color for border for cutout effect
-                            getComputedStyle(document.documentElement).getPropertyValue('--color-surface') || '#fff'
-                        ],
-                        borderWidth: 2 // Adjust border width as needed
+                        backgroundColor: [green, red],
+                        borderColor: [surface],
+                        borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '60%', // Adjust for desired doughnut thickness
+                    cutout: '60%',
                     plugins: {
                         legend: {
-                            position: 'bottom', // Better placement for doughnut
-                            labels: {
-                                color: getComputedStyle(document.body).getPropertyValue('--color-text') || '#333', // Use CSS var for text color
-                                boxWidth: 12,
-                                padding: 15
-                            }
+                            position: 'bottom',
+                            labels: { color: textColor, boxWidth: 12, padding: 15 }
                         },
                         tooltip: {
-                            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--color-surface') || '#fff',
-                            titleColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text') || '#333',
-                            bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text') || '#333',
+                            backgroundColor: surface,
+                            titleColor: textColor,
+                            bodyColor: textColor,
                             borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary') || '#ccc',
                             borderWidth: 1,
                             callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        // Calculate percentage
-                                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) + '%' : '0%';
-                                        label += `${context.parsed} (${percentage})`;
+                                label: function(ctx) {
+                                    let label = ctx.label || '';
+                                    if (label) label += ': ';
+                                    if (ctx.parsed !== null) {
+                                        const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                        const pct = sum > 0 ? ((ctx.parsed / sum) * 100).toFixed(1) + '%' : '0%';
+                                        label += ctx.parsed + ' (' + pct + ')';
                                     }
                                     return label;
                                 }
                             }
                         }
                     }
-                });
+                }
+            };
+
+            try {
+                statsChart = new Chart(ctx, cfg);
+            } catch (e) {
+                console.error('No se pudo crear el gráfico:', e);
+                statsChart = null;
+            }
         }
 
         // =============================
@@ -1711,6 +1717,20 @@ Estructura principal de la aplicación
 
         const modal = document.getElementById('checklist-modal');
         const modalBackdrop = document.getElementById('modal-backdrop');
+        // Temporary object URLs created for previewing Blobs. Revoke on modal close to avoid memory leaks.
+        let tempObjectUrls = [];
+        function createObjectUrl(maybeBlob) {
+            try {
+                if (!maybeBlob) return '';
+                if (typeof maybeBlob === 'string') return maybeBlob; // Already a data URL or external URL
+                const url = URL.createObjectURL(maybeBlob);
+                tempObjectUrls.push(url);
+                return url;
+            } catch (e) {
+                console.warn('Could not create object URL for blob', e);
+                return '';
+            }
+        }
         const closeModalBtn = document.getElementById('close-modal-btn');
         const cancelBtn = document.getElementById('cancel-btn');
         const saveBtn = document.getElementById('save-btn');
@@ -1737,6 +1757,13 @@ Estructura principal de la aplicación
                 paramDiv.className = 'border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50';
                 const currentValue = product.parametros[param.nombre] || '';
                 const hasPhoto = product.fotos && product.fotos[param.nombre];
+                // Determine preview src: support both previous DataURL strings and new Blob objects
+                let previewSrc = '';
+                if (hasPhoto) {
+                    const val = product.fotos[param.nombre];
+                    if (typeof val === 'string') previewSrc = val;
+                    else if (val instanceof Blob) previewSrc = createObjectUrl(val);
+                }
                 paramDiv.innerHTML = `
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div class="flex-grow">
@@ -1762,7 +1789,7 @@ Estructura principal de la aplicación
                                 <i class="fas fa-camera mr-1" aria-hidden="true"></i> ${hasPhoto ? 'Cambiar' : 'Agregar'}
                             </button>
                             <div class="photo-preview mt-1 h-8 w-8 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-                                ${hasPhoto ? `<img src="${product.fotos[param.nombre]}" alt="Preview foto ${param.pregunta}" class="w-full h-full object-cover">` : ''}
+                                ${hasPhoto && previewSrc ? `<img src="${previewSrc}" alt="Preview foto ${param.pregunta}" class="w-full h-full object-cover">` : ''}
                             </div>
                         </div>
                     </div>
@@ -1820,6 +1847,15 @@ Estructura principal de la aplicación
             });
             modalBackdrop.classList.remove('active');
             currentSku = null; // Reset SKU when checklist modal closes
+            // Revoke temporary object URLs created for previews
+tempObjectUrls.forEach(url => {
+ prueba {
+        URL.revokeObjectURL(url);
+    } catch (e) {
+ console.warn('No se pudo revocar la URL del objeto:', url, e);
+    }
+});
+            tempObjectUrls = [];
         }
 
         // Attach listener to backdrop to close any active modal
@@ -1871,21 +1907,22 @@ Estructura principal de la aplicación
                     try {
                         const maxSize = parseInt(document.getElementById('photo-max-size').value, 10);
                         const quality = parseFloat(document.getElementById('photo-quality').value);
-                        const compressedBlob = await resizeImage(file, maxSize, quality);
-                        const dataUrl = await blobToBase64(compressedBlob);
-                        product.fotos[paramId] = dataUrl;
+                                const compressedBlob = await resizeImage(file, maxSize, quality);
+                                // Store Blob in product.fotos for efficient storage in IndexedDB
+                                product.fotos[paramId] = compressedBlob;
 
-                        // Update UI (ensure elements exist)
-                        const photoButton = document.querySelector(`button.photo-btn[data-param="${paramId}"]`);
-                        const previewContainer = photoButton?.parentElement?.querySelector('.photo-preview');
+                                // Update UI (ensure elements exist)
+                                const photoButton = document.querySelector(`button.photo-btn[data-param="${paramId}"]`);
+                                const previewContainer = photoButton?.parentElement?.querySelector('.photo-preview');
 
-                        if (photoButton) {
-                            photoButton.innerHTML = `<i class="fas fa-camera mr-1"></i> Cambiar`;
-                            photoButton.className = 'photo-btn px-3 py-1 text-xs font-medium rounded-lg transition bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
-                        }
-                        if (previewContainer) {
-                            previewContainer.innerHTML = `<img src="${dataUrl}" alt="Preview ${paramId}" class="w-full h-full object-cover">`;
-                        }
+                                if (photoButton) {
+                                    photoButton.innerHTML = `<i class="fas fa-camera mr-1"></i> Cambiar`;
+                                    photoButton.className = 'photo-btn px-3 py-1 text-xs font-medium rounded-lg transition bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+                                }
+                                if (previewContainer) {
+                                    const previewUrl = createObjectUrl(compressedBlob);
+                                    previewContainer.innerHTML = `<img src="${previewUrl}" alt="Preview ${paramId}" class="w-full h-full object-cover">`;
+                                }
 
                         updatePhotoCount(product);
                         showToast('Foto agregada/actualizada.', 'success');
@@ -2135,16 +2172,22 @@ Estructura principal de la aplicación
                 </tr>`;
 
                     if (p.fotos_adjuntas > 0 && p.fotos) {
-                        const photoItems = Object.entries(p.fotos).map(([parametroId, fotoData]) => {
+                        const photoEntries = Object.entries(p.fotos);
+                        const photoItemsArr = [];
+                        for (const [parametroId, fotoData] of photoEntries) {
                             const paramInfo = parametrosChecklist.find(param => param.nombre === parametroId);
                             const paramQuestion = paramInfo ? paramInfo.pregunta.replace(/[¿?]/g, '') : parametroId;
-                            return `
+                            let src = '';
+                            if (typeof fotoData === 'string') src = fotoData;
+                            else if (fotoData instanceof Blob) src = await blobToBase64(fotoData);
+                            photoItemsArr.push(`
                             <div class="photo-item" style="display:inline-block; margin:5px; text-align:center; font-size:9px; color:#555; vertical-align: top; width: 120px;">
-                                <img src="${fotoData}" alt="${paramQuestion.replace(/"/g, '&quot;')}" style="max-width:120px; max-height:120px; border:1px solid #ddd; border-radius:4px; margin-bottom:3px; object-fit: contain;">
+                                <img src="${src}" alt="${paramQuestion.replace(/"/g, '&quot;')}" style="max-width:120px; max-height:120px; border:1px solid #ddd; border-radius:4px; margin-bottom:3px; object-fit: contain;">
                                 <p style="margin:0; word-wrap: break-word;">${paramQuestion}</p>
                             </div>
-                        `;
-                        }).join('');
+                        `);
+                        }
+                        const photoItems = photoItemsArr.join('');
 
                         productRow += `
                         <tr class="photo-row" style="page-break-inside: avoid;">
@@ -2328,9 +2371,23 @@ Estructura principal de la aplicación
                     getAllFromStore('fotos')
                 ]);
 
+                // Convert any Blob objects in fotosData to data URLs so JSON.stringify works
+                const fotosSerializable = await Promise.all(fotosData.map(async f => {
+const clon = { ... f };
+if (clone.blob instancede Blob) {
+                        try {
+                            clone.blob = await blobToBase64(clone.blob);
+                        } catch (e) {
+                            console.warn('Could not convert blob to base64 for export', e);
+                            clone.blob = null;
+                        }
+                    }
+                    return clone;
+                }));
+
                 const dataToExport = {
                     verifications: verificationsData,
-                    fotos: fotosData, // Include photos
+                    fotos: fotosSerializable, // Include photos as base64/dataURL
                     exportDate: new Date().toISOString()
                 };
                 const dataStr = JSON.stringify(dataToExport); // No pretty print for potentially large data
@@ -2421,8 +2478,8 @@ Estructura principal de la aplicación
                     });
                 }
 
-                // Wait for transaction to complete
-                await transaction.done;
+                // Wait for transaction to complete (compatible con IndexedDB nativo)
+                await waitForTransaction(transaction);
 
                 showToast(`${deletedCount} registro(s) antiguo(s) y ${photoDeleteCount} foto(s) eliminados.`, 'success');
 
@@ -2459,8 +2516,8 @@ Estructura principal de la aplicación
                     new Promise((res, rej) => { const req = fotosStore.clear(); req.onsuccess = res; req.onerror = rej; })
                 ]);
 
-                // Wait for transaction to complete (implicit commit on success)
-                await transaction.done;
+                // Wait for transaction to complete (compatible con IndexedDB nativo)
+                await waitForTransaction(transaction);
 
                 showToast("Todos los datos han sido eliminados.", "info");
                 products = productTemplates.map(createInitialProductState); // Reset session state
@@ -2545,6 +2602,7 @@ Estructura principal de la aplicación
         // ===== NEW ATOMIC SAVE FUNCTION =====
         // =============================
         // Guarda la sesión actual en el historial (IndexedDB)
+        // Implementación robusta que evita `new Promise(async ...)` y usa waitForTransaction
         // =============================
         async function commitSessionToHistory() {
             const productsToCommit = products.filter(p => p.status !== 'pending');
@@ -2560,67 +2618,60 @@ Estructura principal de la aplicación
 
             showLoader();
             const btn = document.getElementById('commit-session-btn');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...`;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+            }
 
             const transaction = db.transaction(['verificaciones', 'fotos'], 'readwrite');
             const verificacionesStore = transaction.objectStore('verificaciones');
             const fotosStore = transaction.objectStore('fotos');
-            let commitError = null;
 
             try {
-                const promises = productsToCommit.map(product => {
-                    return new Promise(async (resolve, reject) => { // Mark inner promise as async
-                        try {
-                            const verification = {
-                                sku: product.sku, descripcion: product.descripcion, factorEstiba: product.factorEstiba,
-                                status: product.status, fecha: new Date().toISOString(), inspector: product.inspector,
-                                turno: product.turno, ubicacion: product.ubicacion, observaciones: product.notes,
-                                parametros: product.parametros, total_fotos: product.fotos_adjuntas
-                            };
+                // For each product, enqueue add requests on the same transaction
+                for (const product of productsToCommit) {
+                    const verification = {
+                        sku: product.sku,
+                        descripcion: product.descripcion,
+                        factorEstiba: product.factorEstiba,
+                        status: product.status,
+                        fecha: new Date().toISOString(),
+                        inspector: product.inspector,
+                        turno: product.turno,
+                        ubicacion: product.ubicacion,
+                        observaciones: product.notes,
+                        parametros: product.parametros,
+                        total_fotos: product.fotos_adjuntas
+                    };
 
-                            const verificationId = await new Promise((res, rej) => { // await adding verification
-                                const request = verificacionesStore.add(verification);
-                                request.onsuccess = () => res(request.result);
-                                request.onerror = (e) => rej(e.target.error);
-                            });
-
-                            // Add photos for this verification
-                            let photoAddPromises = [];
-                            if (product.fotos && Object.keys(product.fotos).length > 0) {
-                                for (const [parametroId, fotoData] of Object.entries(product.fotos)) {
-                                    photoAddPromises.push(new Promise((resPhoto, rejPhoto) => {
-                                        const photoReq = fotosStore.add({
-                                            verificacion_id: verificationId,
-                                            parametro: parametroId,
-                                            blob: fotoData,
-                                            fecha: verification.fecha
-                                        });
-                                        photoReq.onsuccess = resPhoto;
-                                        photoReq.onerror = (e) => rejPhoto(e.target.error);
-                                    }));
-                                }
-                            }
-                            await Promise.all(photoAddPromises); // await adding photos
-                            resolve(); // Resolve outer promise after verification and photos are added
-                        } catch (innerError) {
-                            reject(innerError); // Propagate error
-                        }
+                    // Wrap add in a promise to get the generated key
+                    const verificationId = await new Promise((resolve, reject) => {
+                        const req = verificacionesStore.add(verification);
+                        req.onsuccess = () => resolve(req.result);
+                        req.onerror = (e) => reject(e.target ? e.target.error : e);
                     });
-                });
 
-                await Promise.all(promises); // Wait for all products and their photos
-
-            } catch (error) {
-                commitError = error;
-                console.error("Error durante la preparación/guardado:", error);
-                if (transaction.error === null && transaction.readyState === 'active') { // Abort only if active and no underlying error already aborted it
-                    try { transaction.abort(); } catch (abortError) { console.warn("Error aborting transaction:", abortError); }
+                    // Add photos if present; schedule them on the same transaction
+                    if (product.fotos && Object.keys(product.fotos).length > 0) {
+                        for (const [parametroId, fotoData] of Object.entries(product.fotos)) {
+                            await new Promise((resPhoto, rejPhoto) => {
+                                const photoReq = fotosStore.add({
+                                    verificacion_id: verificationId,
+                                    parametro: parametroId,
+                                    blob: fotoData,
+                                    fecha: verification.fecha
+                                });
+                                photoReq.onsuccess = () => resPhoto(photoReq.result);
+                                photoReq.onerror = (e) => rejPhoto(e.target ? e.target.error : e);
+                            });
+                        }
+                    }
                 }
-            }
 
-            transaction.oncomplete = () => {
-                if (commitError) return; // Prevent success message if error occurred
+                // Wait for the transaction to complete (or error/abort)
+                await waitForTransaction(transaction);
+
+                // Success path
                 hideLoader();
                 showToast(`✅ ${productsToCommit.length} verificaciones guardadas con éxito.`, 'success');
                 // Reset products state
@@ -2631,19 +2682,20 @@ Estructura principal de la aplicación
                     }
                 });
                 filterAndRender();
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-save mr-2"></i> Guardar en Historial`;
-            };
-
-            transaction.onerror = (event) => {
+            } catch (err) {
+                // Try to abort if transaction still active
+                try {
+                    if (transaction && transaction.readyState === 'active' && !transaction.error) transaction.abort();
+                } catch (abortErr) { /* ignore abort errors */ }
+                console.error('Error guardando sesión en historial:', err);
                 hideLoader();
-                // Error might be from commit phase or caught earlier
-                const finalError = event.target.error || commitError;
-                console.error('Error en la transacción de guardado:', finalError);
-                showToast(`⚠️ Error grave al guardar: ${finalError?.message || 'Error desconocido'}`, 'error');
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-save mr-2"></i> Guardar en Historial`;
-            };
+                showToast(`⚠️ Error grave al guardar: ${err?.message || err}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save mr-2"></i> Guardar en Historial';
+                }
+            }
         }
 
 
@@ -2843,8 +2895,7 @@ Estructura principal de la aplicación
         }
 
 
-        scanQrMainBtn.addEventListener('click', startQrScanner);
-        // closeQrScannerBtn listener is now part of closeModalAndBackdrop
+    // closeQrScannerBtn listener is now part of closeModalAndBackdrop
 
         // --- END QR SCANNER LOGIC ---
 
