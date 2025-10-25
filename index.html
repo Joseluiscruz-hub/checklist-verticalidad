@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Checklist de Verticalidad y Estibado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <!--
+    =============================
+    Estilos principales y variables de diseño (CONSOLIDADOS)
+    =============================
+    -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* Paleta de diseño unificada (Coca-Cola FEMSA) */
+        :root {
+            /* Identidad de Marca */
+            --cc-red: #ed1c24;
+            --cc-red-dark: #b71c1c;
+            --cc-gray: #333;
+            --cc-gray-light: #f5f5f5;
+            --cc-white: #fff;
+            --cc-green: #43a047;
+
+            /* Semántica (Basada en modo claro por defecto) */
+            --color-background: var(--cc-gray-light);
+            --color-surface: var(--cc-white);
+            --color-text: var(--cc-gray);
+            --color-text-secondary: #555;
+            --color-primary: var(--cc-red);
+            --color-primary-dark: var(--cc-red-dark);
+            --color-accent: var(--cc-green);
+
+            /* Colores de Stats (para modo oscuro también) */
+            --color-blue-bg: rgba(59, 130, 246, 0.1);
+            --color-blue-text: #2563eb;
+            --color-green-bg: rgba(16, 185, 129, 0.1);
+            --color-green-text: #059669;
+            --color-red-bg: rgba(239, 68, 68, 0.1);
+            --color-red-text: #dc2626;
+            --color-amber-bg: rgba(245, 158, 11, 0.1);
+            --color-amber-text: #d97706;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: #111827; /* Gray 900 */
+                --color-surface: #1f2937; /* Gray 800 */
+                --color-text: #d1d5db; /* Gray 300 */
+                --color-text-secondary: #9ca3af; /* Gray 400 */
+                --color-primary: var(--cc-red);
+                --color-primary-dark: #f87171; /* Red 400 */
+                --color-accent: #34d399; /* Green 400 */
+
+                --color-blue-bg: rgba(96, 165, 250, 0.1);
+                --color-blue-text: #60a5fa;
+                --color-green-bg: rgba(52, 211, 153, 0.1);
+                --color-green-text: #34d399;
+                --color-red-bg: rgba(248, 113, 113, 0.1);
+                --color-red-text: #f87171;
+                --color-amber-bg: rgba(251, 191, 36, 0.1);
+                --color-amber-text: #fbbf24;
+            }
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Layout de la App */
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        header.app-header { display:flex; flex-direction:column; align-items:center; gap:0.5rem; text-align:center; margin-bottom:1.5rem; }
+        .datetime-display { color: var(--color-text-secondary); }
+
+        /* Estilo de la cabecera FEMSA */
+        .header-app {
+            background: var(--cc-red);
+            color: var(--cc-white);
+            padding: 0.7rem 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-radius: 0 0 16px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        /* Tarjetas */
+        .section-card {
+            background: var(--color-surface);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+        .table-card {
+            background: var(--color-surface);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .section-title { font-weight: 700; color: var(--color-text); margin-bottom: .5rem; }
+        .section-subtitle { color: var(--color-text-secondary); font-size: 0.95rem; margin-bottom: 1rem; }
+
+        /* Botones principales */
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+        .btn-primary:hover { background: var(--color-primary-dark); }
+        .btn-secondary {
+            background: var(--color-surface);
+            color: var(--color-text);
+            border: 1px solid #e5e7eb;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* Tabla mejorada */
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f8fafc; }
+        th, td { padding: 0.9rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        th { font-weight: 600; color: var(--color-text); }
+        tbody tr:hover { background-color: rgba(0,0,0,0.02); }
+
+        /* Badges */
+        .badge { font-size: 0.85rem; padding: 0.35rem 0.7rem; border-radius: 9999px; font-weight: 600; display: inline-flex; align-items: center; gap: .4rem; }
+        .badge-info { background: var(--color-blue-bg); color: var(--color-blue-text); }
+        .badge-success { background: var(--color-green-bg); color: var(--color-green-text); }
+        .badge-warning { background: var(--color-amber-bg); color: var(--color-amber-text); }
+        .badge-danger { background: var(--color-red-bg); color: var(--color-red-text); }
+
+        /* Estado de resultado */
+        .status-badge { padding: 0.4rem 0.8rem; border-radius: 9999px; font-weight: 600; display: inline-flex; align-items: center; gap: .4rem; }
+        .status-ok { background: var(--color-green-bg); color: var(--color-green-text); }
+        .status-pendiente { background: var(--color-amber-bg); color: var(--color-amber-text); }
+        .status-falla { background: var(--color-red-bg); color: var(--color-red-text); }
+
+        /* Inputs personalizados */
+        .input { border: 1px solid #e5e7eb; border-radius: 10px; padding: 0.6rem 0.8rem; width: 100%; }
+        .select { border: 1px solid #e5e7eb; border-radius: 10px; padding: 0.6rem 0.8rem; background: white; }
+        .checkbox { width: 18px; height: 18px; }
+
+        /* Footer */
+        footer a { color: var(--color-primary); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--color-surface);
+            color: var(--color-text);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            width: 90%;
+            max-width: 420px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; }
+        .modal-message { color: var(--color-text-secondary); margin-bottom: 16px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 9998;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .modal-backdrop.active { opacity: 1; visibility: visible; }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+        .btn:hover { filter: brightness(0.95); }
+        .btn-secondary-plain { background: transparent; color: var(--color-text); border: 1px solid #e5e7eb; }
+        .btn-primary-solid { background: var(--color-primary); color: white; }
+
+        /* Scrollbars sutiles */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header FEMSA -->
+    <div class="header-app">
+        <img src="icon.svg" alt="Logo" style="height:24px;">
+        <span>CHECKLIST — Planta Cuautitlán</span>
+    </div>
+
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="text-2xl font-bold">Checklist de Verticalidad y Estibado — Planta Cuautitlán</h1>
+            <p class="datetime-display" id="datetime"></p>
+        </header>
+
+        <!-- Panel de Control / Acciones principales -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <!-- Tarjeta de Operador -->
+            <div class="section-card md:col-span-1">
+                <h3 class="section-title">
+                    <i class="fa-solid fa-user-helmet-safety"></i> Datos del Operador
+                </h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-sm text-slate-500">Operador</label>
+                        <input id="operadorNombre" class="input" placeholder="Nombre del Operador" />
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500">Línea</label>
+                        <select id="lineaTrabajo" class="select w-full">
+                            <option value="Línea 1">Línea 1</option>
+                            <option value="Línea 2">Línea 2</option>
+                            <option value="Línea 3">Línea 3</option>
+                            <option value="Línea 4">Línea 4</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <button id="btnNuevoChecklist" class="btn-primary">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        Nuevo Registro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Acciones -->
+            <div class="section-card md:col-span-2">
+                <h3 class="section-title">
+                    <i class="fa-solid fa-bars-progress"></i> Acciones Rápidas
+                </h3>
+                <div class="flex flex-wrap gap-3">
+                    <button id="btnCapturarSKU" class="btn-secondary">
+                        <i class="fa-solid fa-barcode"></i>
+                        Capturar SKU / Lote
+                    </button>
+                    <button id="btnIngresarMedicion" class="btn-secondary">
+                        <i class="fa-solid fa-ruler-vertical"></i>
+                        Ingresar Medición
+                    </button>
+                    <button id="btnGenerarReporte" class="btn-secondary">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        Generar Reporte
+                    </button>
+                    <button id="btnExportarExcel" class="btn-secondary">
+                        <i class="fa-solid fa-file-excel"></i>
+                        Exportar Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen / Estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="section-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-slate-500 text-sm">Total de Mediciones</div>
+                        <div id="statTotalMediciones" class="text-2xl font-bold">0</div>
+                    </div>
+                    <span class="badge badge-info">
+                        <i class="fa-solid fa-list"></i> Registros
+                    </span>
+                </div>
+            </div>
+            <div class="section-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-slate-500 text-sm">Promedio de Verticalidad</div>
+                        <div id="statPromedioVerticalidad" class="text-2xl font-bold">0.0°</div>
+                    </div>
+                    <span class="badge badge-success">
+                        <i class="fa-solid fa-angle-up"></i> OK
+                    </span>
+                </div>
+            </div>
+            <div class="section-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-slate-500 text-sm">Alertas</div>
+                        <div id="statAlertas" class="text-2xl font-bold">0</div>
+                    </div>
+                    <span class="badge badge-danger">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Atención
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Registros -->
+        <div class="table-card">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold">Registros Recientes</h3>
+                    <p class="text-slate-500 text-sm">Últimos registros capturados</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btnLimpiarTabla" class="btn-secondary">
+                        <i class="fa-solid fa-trash-can"></i>
+                        Limpiar
+                    </button>
+                    <button id="btnRecargarDatos" class="btn-secondary">
+                        <i class="fa-solid fa-rotate"></i>
+                        Recargar
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Operador</th>
+                            <th>Línea</th>
+                            <th>SKU</th>
+                            <th>Lote</th>
+                            <th>Verticalidad (°)</th>
+                            <th>Estibado</th>
+                            <th>Observaciones</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaRegistrosBody">
+                        <!-- Filas generadas dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gráfica -->
+        <div class="section-card">
+            <h3 class="section-title">Tendencia de Verticalidad</h3>
+            <canvas id="chartVerticalidad" height="120"></canvas>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-6 text-center text-sm text-slate-500">
+            <p>
+                Desarrollado para Planta Cuautitlán · <a href="https://www.coca-colafemsa.com/" target="_blank" rel="noopener">Coca‑Cola FEMSA</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Modales Reutilizables -->
+    <div id="modalBackdrop" class="modal-backdrop"></div>
+
+    <!-- Modal Genérico de Confirmación -->
+    <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalMessage">
+        <div class="modal-title" id="confirmModalTitle">Confirmar acción</div>
+        <div class="modal-message" id="confirmModalMessage">¿Estás seguro de continuar?</div>
+        <div class="modal-actions">
+            <button id="cancelConfirm" class="btn btn-secondary-plain">Cancelar</button>
+            <button id="okConfirm" class="btn btn-primary-solid">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Modal para Capturar Datos (SKU/Lote/Observaciones) -->
+    <div id="dataModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="dataModalTitle">
+        <div class="modal-title" id="dataModalTitle">Capturar Datos</div>
+        <div class="modal-message">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm text-slate-500">SKU</label>
+                    <input id="modalSku" class="input" placeholder="SKU" />
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-500">Lote</label>
+                    <input id="modalLote" class="input" placeholder="Lote" />
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-500">Observaciones</label>
+                    <textarea id="modalObservaciones" class="input" rows="3" placeholder="Observaciones"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelData" class="btn btn-secondary-plain">Cancelar</button>
+            <button id="okData" class="btn btn-primary-solid">Guardar</button>
+        </div>
+    </div>
+
+    <!-- Modal para Ingresar Medición -->
+    <div id="medicionModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="medicionModalTitle">
+        <div class="modal-title" id="medicionModalTitle">Ingresar Medición de Verticalidad</div>
+        <div class="modal-message">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm text-slate-500">Ángulo de Verticalidad (°)</label>
+                    <input id="modalMedicion" type="number" step="0.1" class="input" placeholder="0.0" />
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-500">Estibado</label>
+                    <select id="modalEstibado" class="select w-full">
+                        <option value="Correcto">Correcto</option>
+                        <option value="Incorrecto">Incorrecto</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelMedicion" class="btn btn-secondary-plain">Cancelar</button>
+            <button id="okMedicion" class="btn btn-primary-solid">Guardar</button>
+        </div>
+    </div>
+
+    <!-- Modal para Scanner de Código QR -->
+    <div id="qrModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+        <div class="modal-title" id="qrModalTitle">Escanear Código</div>
+        <div class="modal-message">
+            <div id="reader" style="width:100%"></div>
+            <div class="text-sm text-slate-500 mt-2">Apunta la cámara y espera a que detecte el código.</div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelQr" class="btn btn-secondary-plain">Cerrar</button>
+        </div>
+    </div>
+
+<script>
+    // =============================
+    // Utilidades Reutilizables
+    // =============================
+
+    function formatFechaHora(fecha = new Date()) {
+        return new Intl.DateTimeFormat('es-MX', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        }).format(fecha);
+    }
+
+    function showToast(message, type = 'info') {
+        // Nota: Mantener simple para mínimos cambios. Se podría añadir toast real si se requiere.
+        console.log(`[${type.toUpperCase()}]`, message);
+    }
+
+    // =============================
+    // Gestión de LocalStorage
+    // =============================
+
+    const STORAGE_KEYS = {
+        registros: 'checklist_registros_v1',
+        ultimoOperador: 'checklist_operador_v1',
+        ultimaLinea: 'checklist_linea_v1'
+    };
+
+    const Storage = {
+        save(key, value) {
+            try { localStorage.setItem(key, JSON.stringify(value)); }
+            catch (e) { console.error('Error guardando en localStorage', e); }
+        },
+        load(key, fallback = null) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (e) {
+                console.error('Error leyendo de localStorage', e);
+                return fallback;
+            }
+        }
+    };
+
+    // =============================
+    // Estado y Datos
+    // =============================
+
+    let registros = Storage.load(STORAGE_KEYS.registros, []);
+
+    // =============================
+    // Elementos DOM
+    // =============================
+    const el = (id) => document.getElementById(id);
+
+    const datetimeEl = el('datetime');
+    const operadorNombreEl = el('operadorNombre');
+    const lineaTrabajoEl = el('lineaTrabajo');
+
+    const btnNuevoChecklist = el('btnNuevoChecklist');
+    const btnCapturarSKU = el('btnCapturarSKU');
+    const btnIngresarMedicion = el('btnIngresarMedicion');
+    const btnGenerarReporte = el('btnGenerarReporte');
+    const btnExportarExcel = el('btnExportarExcel');
+
+    const btnLimpiarTabla = el('btnLimpiarTabla');
+    const btnRecargarDatos = el('btnRecargarDatos');
+
+    const tablaBody = el('tablaRegistrosBody');
+
+    // Modales
+    const confirmModal = el('confirmModal');
+    const okConfirmBtn = el('okConfirm');
+    const cancelConfirmBtn = el('cancelConfirm');
+
+    const dataModal = el('dataModal');
+    const okDataBtn = el('okData');
+    const cancelDataBtn = el('cancelData');
+    const modalSku = el('modalSku');
+    const modalLote = el('modalLote');
+    const modalObservaciones = el('modalObservaciones');
+
+    const medicionModal = el('medicionModal');
+    const okMedicionBtn = el('okMedicion');
+    const cancelMedicionBtn = el('cancelMedicion');
+    const modalMedicion = el('modalMedicion');
+    const modalEstibado = el('modalEstibado');
+
+    const qrModal = el('qrModal');
+    const cancelQrBtn = el('cancelQr');
+
+    const modalBackdrop = el('modalBackdrop');
+
+    // =============================
+    // Inicialización
+    // =============================
+
+    function init() {
+        // Cargar operador/linea de storage si existen
+        const ultimoOperador = Storage.load(STORAGE_KEYS.ultimoOperador);
+        const ultimaLinea = Storage.load(STORAGE_KEYS.ultimaLinea);
+        if (ultimoOperador) operadorNombreEl.value = ultimoOperador;
+        if (ultimaLinea) lineaTrabajoEl.value = ultimaLinea;
+
+        // Fecha y hora dinámica
+        renderFechaHora();
+        setInterval(renderFechaHora, 30000);
+
+        // Listeners básicos
+        btnNuevoChecklist.addEventListener('click', onNuevoChecklist);
+        btnCapturarSKU.addEventListener('click', onCapturarSku);
+        btnIngresarMedicion.addEventListener('click', onIngresarMedicion);
+        btnGenerarReporte.addEventListener('click', onGenerarReporte);
+        btnExportarExcel.addEventListener('click', onExportarExcel);
+        btnLimpiarTabla.addEventListener('click', onLimpiarTabla);
+        btnRecargarDatos.addEventListener('click', onRecargarDatos);
+
+        // Render inicial de tabla y stats
+        renderTabla();
+        renderStats();
+        renderChart();
+    }
+
+    function renderFechaHora() {
+        datetimeEl.textContent = `${formatFechaHora(new Date())}`;
+    }
+
+    // =============================
+    // Handlers de Acciones
+    // =============================
+
+    async function onNuevoChecklist() {
+        const operador = operadorNombreEl.value.trim();
+        const linea = lineaTrabajoEl.value;
+
+        if (!operador) {
+            // Guardamos lo que intentó
+            showToast('Por favor, ingresa el nombre del operador', 'warning');
+            operadorNombreEl.focus();
+            return;
+        }
+
+        // Guardar en storage preferencia
+        Storage.save(STORAGE_KEYS.ultimoOperador, operador);
+        Storage.save(STORAGE_KEYS.ultimaLinea, linea);
+
+        // Abrimos modal para capturar SKU/Lote/Obs
+        const datos = await showDataCaptureModal({ sku: '', lote: '', observaciones: '' });
+        if (!datos) return; // cancelado
+
+        // Tras capturar datos, pedimos medición
+        const medicion = await showMedicionModal();
+        if (!medicion) return; // cancelado
+
+        // Confirmar guardado
+        const ok = await confirmAction('Guardar Registro', '¿Deseas guardar este registro en la tabla?');
+        if (!ok) return;
+
+        // Guardar registro
+        const reg = {
+            id: crypto.randomUUID(),
+            fecha: new Date().toISOString(),
+            operador,
+            linea,
+            ...datos,
+            verticalidad: medicion.medicion,
+            estibado: medicion.estibado
+        };
+        registros.push(reg);
+        Storage.save(STORAGE_KEYS.registros, registros);
+
+        renderTabla();
+        renderStats();
+        renderChart();
+
+        showToast('Registro guardado correctamente', 'success');
+    }
+
+    async function onCapturarSku() {
+        // Este botón abre el escáner QR para capturar y rellenar SKU/Lote
+        const ok = await confirmAction('Capturar Código', '¿Deseas abrir el escáner de código para capturar SKU/Lote?');
+        if (!ok) return;
+        await showQrScanner();
+    }
+
+    async function onIngresarMedicion() {
+        const resultado = await showMedicionModal();
+        if (!resultado) return;
+        showToast(`Medición guardada temporalmente: ${resultado.medicion}° (${resultado.estibado})`, 'info');
+    }
+
+    function onGenerarReporte() {
+        // Generar un pequeño reporte en consola
+        console.table(registros.map(r => ({
+            Fecha: formatFechaHora(new Date(r.fecha)),
+            Operador: r.operador,
+            Línea: r.linea,
+            SKU: r.sku,
+            Lote: r.lote,
+            Verticalidad: r.verticalidad,
+            Estibado: r.estibado,
+        })));
+        showToast('Reporte generado en la consola del navegador', 'info');
+    }
+
+    function onExportarExcel() {
+        // Exportar CSV básico (compatible con Excel)
+        if (!registros.length) { showToast('No hay registros para exportar', 'warning'); return; }
+        const headers = ['Fecha','Operador','Línea','SKU','Lote','Verticalidad','Estibado','Observaciones'];
+        const rows = registros.map(r => [
+            formatFechaHora(new Date(r.fecha)), r.operador, r.linea, r.sku, r.lote, r.verticalidad, r.estibado, (r.observaciones||'').replace(/\n/g, ' ')
+        ]);
+        const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `checklist_verticalidad_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Archivo CSV exportado', 'success');
+    }
+
+    async function onLimpiarTabla() {
+        const ok = await confirmAction('Limpiar Registros', '¿Deseas eliminar todos los registros? Esta acción no se puede deshacer.');
+        if (!ok) return;
+        registros = [];
+        Storage.save(STORAGE_KEYS.registros, registros);
+        renderTabla();
+        renderStats();
+        renderChart();
+        showToast('Tabla de registros limpiada', 'success');
+    }
+
+    function onRecargarDatos() {
+        registros = Storage.load(STORAGE_KEYS.registros, []);
+        renderTabla();
+        renderStats();
+        renderChart();
+        showToast('Datos recargados desde almacenamiento local', 'info');
+    }
+
+    // =============================
+    // Render Tabla
+    // =============================
+
+    function renderTabla() {
+        tablaBody.innerHTML = '';
+        if (!registros || !registros.length) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 9;
+            td.className = 'text-center text-slate-500 p-4';
+            td.textContent = 'No hay registros disponibles';
+            tr.appendChild(td);
+            tablaBody.appendChild(tr);
+            return;
+        }
+
+        registros
+            .slice()
+            .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+            .forEach(reg => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatFechaHora(new Date(reg.fecha))}</td>
+                    <td>${reg.operador}</td>
+                    <td>${reg.linea}</td>
+                    <td>${reg.sku || '-'}</td>
+                    <td>${reg.lote || '-'}</td>
+                    <td>${reg.verticalidad ?? '-'}</td>
+                    <td>
+                        <span class="status-badge ${reg.estibado === 'Correcto' ? 'status-ok' : 'status-falla'}">
+                            <i class="fa-solid ${reg.estibado === 'Correcto' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+                            ${reg.estibado || '-'}
+                        </span>
+                    </td>
+                    <td>${reg.observaciones ? reg.observaciones.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '-'}</td>
+                    <td>
+                        <button class="btn-secondary btnEditar" data-id="${reg.id}">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn-secondary btnEliminar" data-id="${reg.id}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tablaBody.appendChild(tr);
+            });
+
+        // Listeners por fila
+        tablaBody.querySelectorAll('.btnEliminar').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                const ok = await confirmAction('Eliminar Registro', '¿Confirmas eliminar este registro?');
+                if (!ok) return;
+                registros = registros.filter(r => r.id !== id);
+                Storage.save(STORAGE_KEYS.registros, registros);
+                renderTabla();
+                renderStats();
+                renderChart();
+            });
+        });
+
+        tablaBody.querySelectorAll('.btnEditar').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                const reg = registros.find(r => r.id === id);
+                if (!reg) return;
+
+                // Editar datos principales
+                const nuevosDatos = await showDataCaptureModal({ sku: reg.sku, lote: reg.lote, observaciones: reg.observaciones });
+                if (!nuevosDatos) return;
+
+                // Editar medición
+                const nuevaMedicion = await showMedicionModal({ medicion: reg.verticalidad, estibado: reg.estibado });
+                if (!nuevaMedicion) return;
+
+                Object.assign(reg, nuevosDatos, nuevaMedicion);
+                Storage.save(STORAGE_KEYS.registros, registros);
+                renderTabla();
+                renderStats();
+                renderChart();
+            });
+        });
+    }
+
+    // =============================
+    // Estadísticas y Gráfico
+    // =============================
+
+    function renderStats() {
+        const total = registros.length;
+        const verticalidades = registros.map(r => Number(r.verticalidad)).filter(v => !isNaN(v));
+        const promedio = verticalidades.length
+            ? (verticalidades.reduce((a, b) => a + b, 0) / verticalidades.length)
+            : 0;
+        const alertas = registros.filter(r => r.estibado === 'Incorrecto' || Number(r.verticalidad) > 2).length;
+
+        document.getElementById('statTotalMediciones').textContent = total;
+        document.getElementById('statPromedioVerticalidad').textContent = `${promedio.toFixed(1)}°`;
+        document.getElementById('statAlertas').textContent = alertas;
+    }
+
+    let chart;
+    function renderChart() {
+        const ctx = document.getElementById('chartVerticalidad').getContext('2d');
+        const labels = registros
+            .slice()
+            .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+            .map(r => new Date(r.fecha).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }));
+        const data = registros
+            .slice()
+            .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+            .map(r => Number(r.verticalidad) || 0);
+
+        if (chart) {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            chart.update();
+            return;
+        }
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Verticalidad (°)',
+                    data,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, suggestedMax: 5 }
+                },
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+    }
+
+    // =============================
+    // Modales reutilizables (Confirmación / Captura / Medición / QR)
+    // =============================
+
+    // Control genérico de modales con promesas
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const backdrop = document.getElementById('modalBackdrop');
+        if (!modal) return Promise.resolve(false);
+
+        modal.classList.add('active');
+        backdrop.classList.add('active');
+
+        return {
+            close() {
+                modal.classList.remove('active');
+                backdrop.classList.remove('active');
+            }
+        };
+    }
+
+    function confirmAction(title = 'Confirmar', message = '¿Seguro?') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            const titleEl = document.getElementById('confirmModalTitle');
+            const messageEl = document.getElementById('confirmModalMessage');
+            const okBtn = document.getElementById('okConfirm');
+            const cancelBtn = document.getElementById('cancelConfirm');
+            const backdrop = document.getElementById('modalBackdrop');
+
+            // Store existing focused element to restore later
+            const previouslyFocusedElement = document.activeElement;
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            modal.classList.add('active');
+
+            backdrop.classList.add('active');
+
+            // Focus management for accessibility - focus OK button by default
+            okBtn.focus();
+
+            const cleanup = (result) => {
+                modal.classList.remove('active');
+                // Hide backdrop only if no other modal is active
+                if (!document.querySelector('.modal.active')) {
+                    backdrop.classList.remove('active');
+                }
+                // Remove listeners to prevent memory leaks
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+                document.removeEventListener('keydown', handleKeyDown);
+
+                // Restore focus
+                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                    // Try/catch just in case the element is no longer focusable
+                    try { previouslyFocusedElement.focus(); } catch (e) { console.warn("Could not restore focus"); }
+                }
+
+                resolve(result);
+            };
+
+            // Define handlers separately to allow removal
+            const handleOk = () => cleanup(true);
+            const handleCancel = () => cleanup(false);
+            const handleKeyDown = (event) => {
+                if (event.key === 'Escape') {
+                    handleCancel();
+                } else if (event.key === 'Tab') {
+                    // Basic focus trapping (can be enhanced)
+                    const focusableElements = [cancelBtn, okBtn];
+                    const currentIndex = focusableElements.indexOf(document.activeElement);
+                    let nextIndex;
+                    if (event.shiftKey) {
+                        nextIndex = (currentIndex - 1 + focusableElements.length) % focusableElements.length;
+                    } else {
+                        nextIndex = (currentIndex + 1) % focusableElements.length;
+                    }
+                    event.preventDefault();
+                    focusableElements[nextIndex].focus();
+                }
+            };
+
+            // Add listeners
+            okBtn.addEventListener('click', handleOk, { once: true });
+            cancelBtn.addEventListener('click', handleCancel, { once: true });
+            document.addEventListener('keydown', handleKeyDown);
+
+        });
+    }
+
+    function showDataCaptureModal(initial = { sku: '', lote: '', observaciones: '' }) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('dataModal');
+            const okBtn = document.getElementById('okData');
+            const cancelBtn = document.getElementById('cancelData');
+            const backdrop = document.getElementById('modalBackdrop');
+
+            const skuEl = document.getElementById('modalSku');
+            const loteEl = document.getElementById('modalLote');
+            const obsEl = document.getElementById('modalObservaciones');
+
+            // Focus management
+            const previouslyFocusedElement = document.activeElement;
+
+            skuEl.value = initial.sku || '';
+            loteEl.value = initial.lote || '';
+            obsEl.value = initial.observaciones || '';
+
+            modal.classList.add('active');
+            backdrop.classList.add('active');
+
+            skuEl.focus();
+
+            const cleanup = (result) => {
+                modal.classList.remove('active');
+                if (!document.querySelector('.modal.active')) {
+                    backdrop.classList.remove('active');
+                }
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+                document.removeEventListener('keydown', handleKeyDown);
+
+                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                    try { previouslyFocusedElement.focus(); } catch {}
+                }
+
+                resolve(result);
+            };
+
+            const handleOk = () => {
+                cleanup({ sku: skuEl.value.trim(), lote: loteEl.value.trim(), observaciones: obsEl.value.trim() });
+            };
+            const handleCancel = () => cleanup(false);
+            const handleKeyDown = (event) => {
+                if (event.key === 'Escape') handleCancel();
+            };
+
+            okBtn.addEventListener('click', handleOk, { once: true });
+            cancelBtn.addEventListener('click', handleCancel, { once: true });
+            document.addEventListener('keydown', handleKeyDown);
+        });
+    }
+
+    function showMedicionModal(initial = { medicion: '', estibado: 'Correcto' }) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('medicionModal');
+            const okBtn = document.getElementById('okMedicion');
+            const cancelBtn = document.getElementById('cancelMedicion');
+            const backdrop = document.getElementById('modalBackdrop');
+
+            const medicionEl = document.getElementById('modalMedicion');
+            const estibadoEl = document.getElementById('modalEstibado');
+
+            const previouslyFocusedElement = document.activeElement;
+
+            medicionEl.value = initial.medicion || '';
+            estibadoEl.value = initial.estibado || 'Correcto';
+
+            modal.classList.add('active');
+            backdrop.classList.add('active');
+
+            medicionEl.focus();
+
+            const cleanup = (result) => {
+                modal.classList.remove('active');
+                if (!document.querySelector('.modal.active')) {
+                    backdrop.classList.remove('active');
+                }
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+                document.removeEventListener('keydown', handleKeyDown);
+
+                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                    try { previouslyFocusedElement.focus(); } catch {}
+                }
+
+                resolve(result);
+            };
+
+            const handleOk = () => {
+                const val = parseFloat(medicionEl.value);
+                if (isNaN(val)) { medicionEl.focus(); return; }
+                cleanup({ medicion: val, estibado: estibadoEl.value });
+            };
+            const handleCancel = () => cleanup(false);
+            const handleKeyDown = (event) => { if (event.key === 'Escape') handleCancel(); };
+
+            okBtn.addEventListener('click', handleOk, { once: true });
+            cancelBtn.addEventListener('click', handleCancel, { once: true });
+            document.addEventListener('keydown', handleKeyDown);
+        });
+    }
+
+    async function showQrScanner() {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('qrModal');
+            const backdrop = document.getElementById('modalBackdrop');
+            const cancelBtn = document.getElementById('cancelQr');
+
+            const previouslyFocusedElement = document.activeElement;
+
+            modal.classList.add('active');
+            backdrop.classList.add('active');
+
+            const html5QrcodeScanner = new Html5Qrcode("reader");
+            const qrConfig = { fps: 10, qrbox: 250 };
+
+            function onScanSuccess(decodedText) {
+                // Intentamos parsear potencial formato SKU|LOTE
+                const parts = decodedText.split('|');
+                if (parts.length >= 2) {
+                    el('modalSku').value = parts[0];
+                    el('modalLote').value = parts[1];
+                } else {
+                    el('modalSku').value = decodedText;
+                }
+                html5QrcodeScanner.stop().then(() => {
+                    modal.classList.remove('active');
+                    if (!document.querySelector('.modal.active')) {
+                        backdrop.classList.remove('active');
+                    }
+                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                        try { previouslyFocusedElement.focus(); } catch {}
+                    }
+                    resolve(true);
+                }).catch(err => {
+                    console.error('Error al detener el escáner:', err);
+                    resolve(false);
+                });
+            }
+
+            function onScanFailure(error) {
+                // Intencionalmente silencioso para evitar spam en consola
+            }
+
+            html5QrcodeScanner.start({ facingMode: 'environment' }, qrConfig, onScanSuccess, onScanFailure);
+
+            cancelBtn.addEventListener('click', () => {
+                html5QrcodeScanner.stop().then(() => {
+                    modal.classList.remove('active');
+                    if (!document.querySelector('.modal.active')) {
+                        backdrop.classList.remove('active');
+                    }
+                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                        try { previouslyFocusedElement.focus(); } catch {}
+                    }
+                    resolve(false);
+                }).catch(err => {
+                    console.error('Error al detener el escáner:', err);
+                    resolve(false);
+                });
+            }, { once: true });
+        });
+    }
+
+    // =============================
+    // Inicio
+    // =============================
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+<!-- Mejoras de accesibilidad y robustez del modal de confirmación -->
+<script>
+    function confirmAction(title = 'Confirmar', message = '¿Seguro?') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            const titleEl = document.getElementById('confirmModalTitle');
+            const messageEl = document.getElementById('confirmModalMessage');
+            const okBtn = document.getElementById('okConfirm');
+            const cancelBtn = document.getElementById('cancelConfirm');
+            const backdrop = document.getElementById('modalBackdrop');
+
+            // Store existing focused element to restore later
+            const previouslyFocusedElement = document.activeElement;
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            modal.classList.add('active');
+
+            backdrop.classList.add('active');
+
+             // Focus management for accessibility - focus OK button by default
+             okBtn.focus();
+
+
+            const cleanup = (result) => {
+                modal.classList.remove('active');
+                // Hide backdrop only if no other modal is active
+                if (!document.querySelector('.modal.active')) {
+                    backdrop.classList.remove('active');
+                }
+                // Remove listeners to prevent memory leaks
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+                document.removeEventListener('keydown', handleKeyDown);
+
+
+                // Restore focus
+                if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                    // Try/catch just in case the element is no longer focusable
+                    try { previouslyFocusedElement.focus(); } catch (e) { console.warn("Could not restore focus"); }
+                }
+
+                resolve(result);
+            };
+
+             // Define handlers separately to allow removal
+             const handleOk = () => cleanup(true);
+             const handleCancel = () => cleanup(false);
+             const handleKeyDown = (event) => {
+                if (event.key === 'Escape') {
+                    handleCancel();
+                } else if (event.key === 'Tab') {
+                     // Basic focus trapping (can be enhanced)
+                     const focusableElements = [cancelBtn, okBtn];
+                     const currentIndex = focusableElements.indexOf(document.activeElement);
+                     let nextIndex;
+                     if (event.shiftKey) {
+                         nextIndex = (currentIndex - 1 + focusableElements.length) % focusableElements.length;
+                     } else {
+                         nextIndex = (currentIndex + 1) % focusableElements.length;
+                     }
+                     event.preventDefault();
+                     focusableElements[nextIndex].focus();
+                }
+            };
+
+
+            // Add listeners
+            okBtn.addEventListener('click', handleOk, { once: true });
+            cancelBtn.addEventListener('click', handleCancel, { once: true });
+            document.addEventListener('keydown', handleKeyDown);
+
+        });
+    }
+
+</script>
+
+</body>
+</html>
