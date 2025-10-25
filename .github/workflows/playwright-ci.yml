@@ -33,7 +33,7 @@ jobs:
 
       - name: Run functional test
         run: |
-          python tests/run_playwright_test.py
+          python tests/run_playwright.py
 
       - name: Archive artifacts on failure
         if: failure()
