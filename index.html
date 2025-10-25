@@ -1849,7 +1849,7 @@ Estructura principal de la aplicación
             currentSku = null; // Reset SKU when checklist modal closes
             // Revoke temporary object URLs created for previews
 tempObjectUrls.forEach(url => {
- prueba {
+ try {
         URL.revokeObjectURL(url);
     } catch (e) {
  console.warn('No se pudo revocar la URL del objeto:', url, e);
