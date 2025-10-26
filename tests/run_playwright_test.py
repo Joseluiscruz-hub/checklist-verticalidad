@@ -137,7 +137,20 @@ def run():
             time.sleep(3)
 
             # Switch to history tab and wait for table rows
-            page.evaluate("switchTab('historial')")
+            # Avoid calling switchTab via evaluate (might not be defined yet). Click the tab button instead.
+            tab_btn = page.locator('.tab-button[data-tab="historial"]').first
+            if tab_btn.count() > 0:
+                try:
+                    tab_btn.click()
+                except Exception:
+                    # if click fails, fallback to JS click
+                    page.evaluate("document.querySelector('.tab-button[data-tab=\'historial\']')?.click()")
+            else:
+                # As fallback try to call switchTab (older versions)
+                try:
+                    page.evaluate("switchTab('historial')")
+                except Exception:
+                    pass
             page.wait_for_selector('.view-details-btn', timeout=15000)
 
             # Open first details modal and assert image exists
