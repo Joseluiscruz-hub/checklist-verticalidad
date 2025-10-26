@@ -33,7 +33,8 @@ jobs:
 
       - name: Run functional test
         run: |
-          python tests/run_playwright.py
+          # Run the existing test script (filename in repo is run_playwright_test.py)
+          python tests/run_playwright_test.py
 
       - name: Archive artifacts on failure
         if: failure()
