@@ -110,11 +110,28 @@ def run():
             try:
                 page.click('#commit-session-btn', timeout=60000)
             except Exception:
-                # fallback to force click or JS click if Playwright can't click
                 try:
                     page.click('#commit-session-btn', timeout=60000, force=True)
                 except Exception:
-                    page.evaluate("document.getElementById('commit-session-btn')?.click()")
+                    # As a last resort, disable pointer-events for other elements inside
+                    # the modal and dispatch a direct JS click on the button.
+                    page.evaluate("""
+                        (function() {
+                            const btn = document.getElementById('commit-session-btn');
+                            if (!btn) return;
+                            btn.style.pointerEvents = 'auto';
+                            btn.style.zIndex = '9999';
+                            let modal = btn.closest('#checklist-modal') || btn.closest('.modal');
+                            if (modal) {
+                                modal.querySelectorAll('*').forEach(el => {
+                                    if (el !== btn) {
+                                        try { el.style.pointerEvents = 'none'; } catch(e){}
+                                    }
+                                });
+                            }
+                            btn.click();
+                        })();
+                    """)
 
             # Wait a bit for transaction to complete
             time.sleep(3)
