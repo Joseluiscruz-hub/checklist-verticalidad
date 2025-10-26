@@ -29,61 +29,8 @@ def run():
         base_url = os.environ.get('TEST_BASE_URL', 'http://localhost:8000').rstrip('/')
         page.goto(f"{base_url}/", timeout=60000)
 
-        # Wait for table and open first product modal
-        page.wait_for_selector('.check-btn', timeout=30000)
-        page.locator('.check-btn').first.click()
-
-        # Wait for modal to be visible
-        page.wait_for_selector('#checklist-modal.active, .modal.active', timeout=10000)
-
-        # Find the first visible file input inside the modal
-        file_input = page.locator('input[type=file][id^="photo-"]')
-        if file_input.count() == 0:
-            print('ERROR: No file input found in modal')
-            browser.close()
-            raise SystemExit(2)
-
-        # Attach sample image via buffer
-        file_input.first.set_input_files({
-            'name': 'sample.png',
-            'mimeType': 'image/png',
-            'buffer': img_bytes,
-        })
-
-        # Click save
-        try:
-            page.click('#save-btn')
-        except Exception:
-            # Some setups may require clicking via JS if obscured
-            page.evaluate("document.getElementById('save-btn')?.click()")
-        time.sleep(1)
-
-        # Commit session to history
-        page.click('#commit-session-btn')
-
-        # Wait a bit for transaction to complete
-        time.sleep(3)
-
-        # Switch to history tab and wait for table rows
-        page.evaluate("switchTab('historial')")
-        page.wait_for_selector('.view-details-btn', timeout=15000)
-
-        # Open first details modal and assert image exists
-        try:
-            page.locator('.view-details-btn').first.click()
-            page.wait_for_selector('#history-detail-modal.active', timeout=10000)
-
-            # Check if there's an img inside the history modal content
-            imgs = page.locator('#history-modal-content img')
-            count = imgs.count()
-            print(f'Found {count} images in history modal content')
-            if count == 0:
-                raise Exception('No images found in history details')
-
-            print('TEST PASSED: Image found in history details')
-
-        except Exception:
-            # Save artifacts for debugging: screenshot, page HTML, console logs
+        # Helper to save artifacts on any failure
+        def _save_artifacts():
             try:
                 artifacts_dir = os.path.join('tests', 'artifacts')
                 os.makedirs(artifacts_dir, exist_ok=True)
@@ -91,7 +38,6 @@ def run():
                 html_path = os.path.join(artifacts_dir, 'page_source.html')
                 console_path = os.path.join(artifacts_dir, 'console.log')
 
-                # screenshot of full page
                 try:
                     page.screenshot(path=screenshot_path, full_page=True)
                 except Exception as se:
@@ -114,9 +60,85 @@ def run():
                 print('Saved artifacts to', artifacts_dir)
             except Exception as ae:
                 print('Failed to write artifacts:', ae)
-            finally:
-                browser.close()
-            # Re-raise to cause CI step failure
+
+        # Helper to remove common blocking overlays (toasts, backdrops)
+        def _remove_blocking_overlays():
+            page.evaluate("""
+                (() => {
+                    const selectors = ['#toast-container', '.toast', '.overlay', '.modal-backdrop', '.backdrop'];
+                    selectors.forEach(s => {
+                        document.querySelectorAll(s).forEach(el => {
+                            try { el.style.display = 'none'; el.style.pointerEvents = 'none'; } catch(e){}
+                        });
+                    });
+                })()
+            """)
+
+        # Run the main interaction flow and capture artifacts on any exception
+        try:
+            # Wait for table and open first product modal
+            page.wait_for_selector('.check-btn', timeout=30000)
+            page.locator('.check-btn').first.click()
+
+            # Wait for modal to be visible
+            page.wait_for_selector('#checklist-modal.active, .modal.active', timeout=10000)
+
+            # Find the first visible file input inside the modal
+            file_input = page.locator('input[type=file][id^="photo-"]')
+            if file_input.count() == 0:
+                print('ERROR: No file input found in modal')
+                raise SystemExit(2)
+
+            # Attach sample image via buffer
+            file_input.first.set_input_files({
+                'name': 'sample.png',
+                'mimeType': 'image/png',
+                'buffer': img_bytes,
+            })
+
+            # Click save
+            try:
+                page.click('#save-btn')
+            except Exception:
+                # Some setups may require clicking via JS if obscured
+                page.evaluate("document.getElementById('save-btn')?.click()")
+            time.sleep(1)
+
+            # Commit session to history
+            # Remove blocking overlays before clicking (toasts often intercept pointer events)
+            _remove_blocking_overlays()
+            try:
+                page.click('#commit-session-btn', timeout=60000)
+            except Exception:
+                # fallback to force click or JS click if Playwright can't click
+                try:
+                    page.click('#commit-session-btn', timeout=60000, force=True)
+                except Exception:
+                    page.evaluate("document.getElementById('commit-session-btn')?.click()")
+
+            # Wait a bit for transaction to complete
+            time.sleep(3)
+
+            # Switch to history tab and wait for table rows
+            page.evaluate("switchTab('historial')")
+            page.wait_for_selector('.view-details-btn', timeout=15000)
+
+            # Open first details modal and assert image exists
+            page.locator('.view-details-btn').first.click()
+            page.wait_for_selector('#history-detail-modal.active', timeout=10000)
+
+            # Check if there's an img inside the history modal content
+            imgs = page.locator('#history-modal-content img')
+            count = imgs.count()
+            print(f'Found {count} images in history modal content')
+            if count == 0:
+                raise Exception('No images found in history details')
+
+            print('TEST PASSED: Image found in history details')
+
+        except Exception:
+            _save_artifacts()
+            browser.close()
             raise
         finally:
             try:
