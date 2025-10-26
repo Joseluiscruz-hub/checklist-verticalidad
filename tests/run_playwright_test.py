@@ -96,6 +96,21 @@ def run():
                 'buffer': img_bytes,
             })
 
+            # Fill required checklist fields (mark 'si' / checked) to allow save
+            try:
+                # Try to check any radio or checkbox inputs inside the modal
+                page.evaluate("""
+                    (() => {
+                        document.querySelectorAll('#checklist-modal input[type=radio], #checklist-modal input[type=checkbox]').forEach(i => {
+                            try { i.checked = true; i.dispatchEvent(new Event('change', { bubbles: true })); } catch(e){}
+                        });
+                        // For text inputs, set a default value
+                        document.querySelectorAll('#checklist-modal input[type=text], #checklist-modal textarea').forEach(i => { try { i.value = 'OK'; i.dispatchEvent(new Event('input', { bubbles: true })); } catch(e){} });
+                    })()
+                """)
+            except Exception:
+                pass
+
             # Click save
             try:
                 page.click('#save-btn')
