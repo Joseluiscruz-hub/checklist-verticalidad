@@ -26,7 +26,7 @@ def run():
         page.on('console', _on_console)
 
         # Open app
-        page.goto('http://127.0.0.1:8000/index.html', timeout=60000)
+        page.goto('http://joseluiscruz.me/checklist-verticalidad', timeout=60000)
 
         # Wait for table and open first product modal
         page.wait_for_selector('.check-btn', timeout=30000)
