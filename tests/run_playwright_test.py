@@ -25,8 +25,9 @@ def run():
 
         page.on('console', _on_console)
 
-        # Open app
-        page.goto('http://joseluiscruz.me/checklist-verticalidad', timeout=60000)
+        # Open app. Use TEST_BASE_URL env var if provided (defaults to local static server started in CI)
+        base_url = os.environ.get('TEST_BASE_URL', 'http://localhost:8000').rstrip('/')
+        page.goto(f"{base_url}/", timeout=60000)
 
         # Wait for table and open first product modal
         page.wait_for_selector('.check-btn', timeout=30000)
