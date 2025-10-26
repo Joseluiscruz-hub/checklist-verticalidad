@@ -2874,7 +2874,8 @@ Estructura principal de la aplicación
         // =============================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
+                // Use a relative path so registration works when the site is served under a subpath
+                navigator.serviceWorker.register('service-worker.js')
                     .then((registration) => {
                         console.log('Service Worker registrado:', registration);
                         showToast('Aplicación instalable como PWA.', 'info');
