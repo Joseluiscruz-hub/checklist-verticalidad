@@ -102,7 +102,19 @@ def run():
             except Exception:
                 # Some setups may require clicking via JS if obscured
                 page.evaluate("document.getElementById('save-btn')?.click()")
-            time.sleep(1)
+
+            # Wait for the UI to reflect the saved photo in the product row
+            # The photos column is the 6th td in the product table rows. Wait until
+            # it shows something other than '-' (default when no photos).
+            try:
+                page.wait_for_function(
+                    "() => { const el = document.querySelector('#product-table-body tr td:nth-child(6)'); return el && el.textContent && el.textContent.trim() !== '-' && el.textContent.trim() !== ''; }",
+                    timeout=5000,
+                )
+            except Exception:
+                # If the UI didn't update in time, keep going but this may cause
+                # the commit to find no verifications; artifacts will be saved on failure.
+                pass
 
             # Commit session to history
             # Remove blocking overlays before clicking (toasts often intercept pointer events)
@@ -151,7 +163,9 @@ def run():
                     page.evaluate("switchTab('historial')")
                 except Exception:
                     pass
-            page.wait_for_selector('.view-details-btn', timeout=15000)
+            # Wait for history rows to be rendered in the history table. The
+            # rows are inserted dynamically into #history-table-body.
+            page.wait_for_selector('#history-table-body tr', timeout=15000)
 
             # Open first details modal and assert image exists
             page.locator('.view-details-btn').first.click()
