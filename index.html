@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Checklist de Verticalidad y Estibado</title>
+    <!-- [MEJORA] Añadido enlace al manifest para PWA (de prueba03) -->
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -12,7 +13,7 @@
 
     <!--
     =============================
-    Estilos principales y variables de diseño (CONSOLIDADOS)
+    Estilos principales y variables de diseño (CONSOLIDADOS Y ACTUALIZADOS)
     =============================
     -->
     <style>
@@ -23,7 +24,7 @@
             --cc-red: #ed1c24;
             --cc-red-dark: #b71c1c;
             --cc-gray: #333;
-            --cc-gray-light: #f5f5f5;
+            --cc-gray-light: #f5f5ff; /* Ligeramente más frío */
             --cc-white: #fff;
             --cc-green: #43a047;
 
@@ -81,7 +82,7 @@
         header.app-header { display:flex; flex-direction:column; align-items:center; gap:0.5rem; text-align:center; margin-bottom:1.5rem; }
         .datetime-display { color: var(--color-text-secondary); }
 
-        /* Estilo de la cabecera FEMSA */
+        /* [MEJORA] Estilo de la cabecera FEMSA (de prueba03) */
         .header-app {
             background: linear-gradient(135deg, var(--cc-red) 0%, #a40009 100%);
             color: var(--cc-white);
@@ -108,6 +109,7 @@
         .brand-text { text-align: left; }
         .brand-title { font-size: 1.125rem; font-weight: 800; letter-spacing: 0.4px; }
         .brand-subtitle { font-size: 0.85rem; font-weight: 500; opacity: 0.9; }
+
 
         /* Tarjetas */
         .section-card {
@@ -172,7 +174,7 @@
             margin-right: 0.5em !important;
         }
 
-        /* Tabs - estilo premium */
+        /* [MEJORA] Tabs - estilo premium (de prueba03) */
         .tabs-card {
             background: var(--color-surface);
             border-radius: 14px;
@@ -181,15 +183,23 @@
         }
         .tab-button {
             transition: all 0.2s ease;
-            border-radius: 9999px;
+            border-radius: 9999px !important; /* Asegurar redondeo */
+            border-bottom-width: 0 !important; /* Quitar borde inferior */
         }
         .tab-button.active {
             color: var(--color-primary) !important;
             background: rgba(237, 28, 36, 0.1);
             border-bottom-color: transparent !important;
         }
-        .tab-button:hover { background: rgba(0,0,0,0.04); }
-        .tab-button:focus { outline: 3px solid rgba(237, 28, 36, 0.18); outline-offset: 2px; border-radius: 9999px; }
+        .tab-button:not(.active):hover {
+             background: rgba(0,0,0,0.04);
+             border-bottom-color: transparent !important;
+        }
+        .tab-button:focus {
+            outline: 3px solid rgba(237, 28, 36, 0.18);
+            outline-offset: 2px;
+            border-radius: 9999px;
+        }
 
 
         /* Sticky header para tablas */
@@ -206,7 +216,6 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
             z-index: 9999;
             width: 95vw;
             max-width: 960px;
@@ -287,6 +296,11 @@
                 padding: 0.7rem 0.5rem;
                 border-radius: 0 0 12px 12px;
             }
+             /* [MEJORA] Ocultar subtítulo y ajustar logo en móvil */
+            .brand-logo { width: 32px; height: 32px; }
+            .brand-title { font-size: 1rem; }
+            .brand-subtitle { display: none; }
+
             .section-card {
                 padding: 0.7rem;
                 border-radius: 12px;
@@ -301,7 +315,7 @@
                 margin-top: 0.5rem;
             }
 
-            /* Tabs en columna */
+            /* [MEJORA] Tabs en columna (de prueba03) */
             nav.tabs-card ul[role="tablist"] { /* Selector más específico */
                 flex-direction: column !important;
                 overflow-x: visible !important;
@@ -311,12 +325,12 @@
                 font-size: 1rem !important;
                 margin-bottom: 0.5rem !important;
                 width: 100%;
-                border-radius: 8px;
-                border-bottom-width: 0 !important; /* Quitar borde inferior en móvil */
+                border-radius: 8px !important; /* Bordes más suaves en móvil */
+                border-bottom-width: 0 !important;
             }
             .tab-button.active {
-                border-bottom-width: 0 !important; /* Asegurar que no haya borde */
-                background: rgba(237, 28, 36, 0.1); /* Fondo ligero rojo para activo */
+                border-bottom-width: 0 !important;
+                background: rgba(237, 28, 36, 0.1);
             }
 
 
@@ -372,6 +386,14 @@
             .photo-preview { display: none; } /* Ocultar previews pequeñas */
 
         }
+
+        /* Ocultos por defecto, anulados por .active */
+        .hidden { display: none !important; }
+        .loader-backdrop { display:none; }
+        .modal { display: none; pointer-events: none; }
+        .modal.active { display: block; pointer-events: auto; }
+        .modal-backdrop { display: none; pointer-events: none; }
+        .modal-backdrop.active { display: block; pointer-events: auto; }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
@@ -402,7 +424,7 @@ Estructura principal de la aplicación
 -->
 <main class="app-container">
     <header class="app-header" role="banner" aria-label="Encabezado del Checklist">
-        <!-- Encabezado Coca-Cola FEMSA (Logo de texto) -->
+        <!-- [MEJORA] Encabezado Coca-Cola FEMSA (de prueba03) -->
         <div class="header-app">
             <div class="brand" aria-label="Identidad corporativa">
                 <div class="brand-logo" aria-hidden="true">CC</div>
@@ -420,27 +442,29 @@ Estructura principal de la aplicación
         <div id="db-status" class="mt-2 text-sm" aria-live="polite"></div>
     </header>
 
-    <!-- Navigation Tabs -->
+    <!-- [MEJORA] Navigation Tabs (con estilos de prueba03) -->
     <nav class="mb-6 tabs-card section-card no-print" role="navigation" aria-label="Navegación principal">
-        <div class="border-b border-gray-200 dark:border-gray-700" aria-label="Pestañas principales">
+        <!-- Contenedor de ul ahora sin borde inferior -->
+        <div aria-label="Pestañas principales">
             <ul class="flex flex-row flex-nowrap overflow-x-auto sm:flex-col sm:overflow-x-visible -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400" role="tablist" style="scrollbar-width: thin;">
                 <li class="mr-2" role="presentation">
-                    <button id="tabbutton-verificar" class="tab-button active inline-block p-4 border-b-2 border-sky-600 text-sky-600 hover:text-sky-600 dark:text-sky-400 dark:border-sky-400" data-tab="verificar" type="button" role="tab" aria-controls="tab-verificar" aria-selected="true" tabindex="0">
+                    <!-- Clases de tab-button actualizadas para estilo redondeado -->
+                    <button id="tabbutton-verificar" class="tab-button active inline-block p-4" data-tab="verificar" type="button" role="tab" aria-controls="tab-verificar" aria-selected="true" tabindex="0">
                         <i class="fas fa-clipboard-check mr-2" aria-hidden="true"></i>Verificar Productos
                     </button>
                 </li>
                 <li class="mr-2" role="presentation">
-                    <button id="tabbutton-historial" class="tab-button inline-block p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300" data-tab="historial" type="button" role="tab" aria-controls="tab-historial" aria-selected="false" tabindex="-1">
+                    <button id="tabbutton-historial" class="tab-button inline-block p-4" data-tab="historial" type="button" role="tab" aria-controls="tab-historial" aria-selected="false" tabindex="-1">
                         <i class="fas fa-history mr-2" aria-hidden="true"></i>Historial
                     </button>
                 </li>
                 <li class="mr-2" role="presentation">
-                    <button id="tabbutton-estadisticas" class="tab-button inline-block p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300" data-tab="estadisticas" type="button" role="tab" aria-controls="tab-estadisticas" aria-selected="false" tabindex="-1">
+                    <button id="tabbutton-estadisticas" class="tab-button inline-block p-4" data-tab="estadisticas" type="button" role="tab" aria-controls="tab-estadisticas" aria-selected="false" tabindex="-1">
                         <i class="fas fa-chart-bar mr-2" aria-hidden="true"></i>Estadísticas
                     </button>
                 </li>
                 <li class="mr-2" role="presentation">
-                    <button id="tabbutton-configuracion" class="tab-button inline-block p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300" data-tab="configuracion" type="button" role="tab" aria-controls="tab-configuracion" aria-selected="false" tabindex="-1">
+                    <button id="tabbutton-configuracion" class="tab-button inline-block p-4" data-tab="configuracion" type="button" role="tab" aria-controls="tab-configuracion" aria-selected="false" tabindex="-1">
                         <i class="fas fa-cog mr-2" aria-hidden="true"></i>Configuración
                     </button>
                 </li>
@@ -499,7 +523,7 @@ Estructura principal de la aplicación
                     </tr>
                     </thead>
                     <tbody id="product-table-body" role="rowgroup">
-                    <!-- JavaScript will insert rows here -->
+                    <!-- Rows will be inserted here by JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -1033,6 +1057,8 @@ Estructura principal de la aplicación
         // Estado principal de productos
         let products = productTemplates.map(createInitialProductState);
 
+        // [MEJORA] Función resizeImage actualizada (de prueba03)
+        // Incluye corrección de fuga de memoria (URL.revokeObjectURL)
         function resizeImage(file, maxSize = 1280, quality = 0.6) {
             return new Promise((resolve, reject) => {
                 try {
@@ -1058,8 +1084,6 @@ Estructura principal de la aplicación
                             reject(loadError);
                         } finally {
                             // <!-- [INICIO] CORRECCIÓN DE FUGA DE MEMORIA -->
-                            // Revoca el Object URL para liberar memoria, ya sea que la carga/procesamiento
-                            // haya sido exitosa o haya fallado.
                             URL.revokeObjectURL(img.src);
                             // <!-- [FIN] CORRECCIÓN DE FUGA DE MEMORIA -->
                         }
@@ -1067,7 +1091,6 @@ Estructura principal de la aplicación
                     img.onerror = function(errorEvent) { // Handle image loading errors
                         console.error("Error loading image for resizing:", errorEvent);
                         // <!-- [INICIO] CORRECCIÓN DE FUGA DE MEMORIA -->
-                        // También revoca aquí en caso de error de carga
                         URL.revokeObjectURL(img.src);
                         // <!-- [FIN] CORRECCIÓN DE FUGA DE MEMORIA -->
                         reject(new Error("Failed to load image for resizing"));
@@ -1079,6 +1102,7 @@ Estructura principal de la aplicación
                 }
             });
         }
+
         function blobToBase64(blob) {
             return new Promise((resolve, reject) => { // Added reject
                 const reader = new FileReader();
@@ -1095,16 +1119,9 @@ Estructura principal de la aplicación
             document.querySelectorAll('.tab-button').forEach(btn => {
                 const isActive = btn.dataset.tab === tabName;
                 btn.classList.toggle('active', isActive);
-                btn.classList.toggle('border-sky-600', isActive); // Mantiene el estilo activo original
-                btn.classList.toggle('text-sky-600', isActive); // Mantiene el estilo activo original
-                btn.classList.toggle('dark:border-sky-400', isActive); // Mantiene el estilo activo original
-                btn.classList.toggle('dark:text-sky-400', isActive); // Mantiene el estilo activo original
-                btn.classList.toggle('border-transparent', !isActive);
-                btn.classList.toggle('text-gray-500', !isActive); // Mantiene estilo inactivo original
-                btn.classList.toggle('hover:text-gray-600', !isActive); // Mantiene estilo inactivo original
-                btn.classList.toggle('hover:border-gray-300', !isActive); // Mantiene estilo inactivo original
-                btn.classList.toggle('dark:text-gray-400', !isActive); // Mantiene estilo inactivo original
-                btn.classList.toggle('dark:hover:text-gray-300', !isActive); // Mantiene estilo inactivo original
+                // [MEJORA] Clases simplificadas para el nuevo estilo de tabs
+                btn.classList.toggle('text-gray-500', !isActive);
+                btn.classList.toggle('dark:text-gray-400', !isActive);
                 btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
                 btn.setAttribute('tabindex', isActive ? '0' : '-1');
             });
@@ -1499,6 +1516,7 @@ Estructura principal de la aplicación
                             borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary') || '#ccc',
                             borderWidth: 1,
                             callbacks: {
+                                // [MEJORA] Corregido el callback del tooltip (de prueba03)
                                 label: function(context) {
                                     let label = context.label || '';
                                     if (label) {
@@ -1598,6 +1616,17 @@ Estructura principal de la aplicación
 
                 if (savedQuality) photoQualitySelect.value = savedQuality;
                 if (savedSize) photoMaxSizeSelect.value = savedSize;
+
+                // [MEJORA] Listeners movidos aquí (de prueba03)
+                photoQualitySelect.addEventListener('change', (e) => {
+                    localStorage.setItem('photoQuality', e.target.value);
+                    showToast('Calidad de fotos guardada.', 'success');
+                });
+                photoMaxSizeSelect.addEventListener('change', (e) => {
+                    localStorage.setItem('photoMaxSize', e.target.value);
+                    showToast('Tamaño máximo de foto guardado.', 'success');
+                });
+
 
                 updateStorageUsage();
                 // Update diagnostic panel as configuration finished loading
@@ -2197,6 +2226,7 @@ Estructura principal de la aplicación
                     <tr>
                         <td><strong>Fecha Emisión:</strong><br>${emissionDate}</td>
                         <td><strong>Fecha Expiración:</strong><br>${expirationDate}</td>
+                        <!-- [MEJORA] Corregido "Rev 04" a "Rev. 04" (de prueba03) -->
                         <td><strong>Código:</strong><br>${documentCode}<br><strong>Revisión:</strong> Rev. 04</td>
                     </tr>
                     </table>`);
@@ -2482,9 +2512,9 @@ Estructura principal de la aplicación
 
 
         const exportBtnEl = document.getElementById('export-btn');
-        if (exportBtnEl) { exportBtnEl.addEventListener('click', exportToCSV); console.log('export-btn listener attached'); }
+        if (exportBtnEl) { exportBtnEl.addEventListener('click', exportToCSV); }
         const printBtnEl = document.getElementById('print-btn');
-        if (printBtnEl) { printBtnEl.addEventListener('click', printReport); console.log('print-btn listener attached'); }
+        if (printBtnEl) { printBtnEl.addEventListener('click', printReport); }
 
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', (e) => switchTab(e.currentTarget.dataset.tab));
@@ -2496,7 +2526,6 @@ Estructura principal de la aplicación
                 }
             });
         });
-
         const applyFiltersBtn = document.getElementById('apply-filters');
         if (applyFiltersBtn) { applyFiltersBtn.addEventListener('click', loadHistoryContent); }
         const exportHistoryBtn = document.getElementById('export-history');
@@ -2507,21 +2536,6 @@ Estructura principal de la aplicación
         if (cleanOldBtn) { cleanOldBtn.addEventListener('click', cleanOldData); }
         const clearAllBtn = document.getElementById('clear-all-data');
         if (clearAllBtn) { clearAllBtn.addEventListener('click', clearAllData); }
-        const photoQualityEl = document.getElementById('photo-quality');
-        if (photoQualityEl) {
-            photoQualityEl.addEventListener('change', (e) => {
-                localStorage.setItem('photoQuality', e.target.value);
-                showToast('Calidad de fotos guardada.', 'success');
-            });
-        }
-
-        const photoMaxSizeEl = document.getElementById('photo-max-size');
-        if (photoMaxSizeEl) {
-            photoMaxSizeEl.addEventListener('change', (e) => {
-                localStorage.setItem('photoMaxSize', e.target.value);
-                showToast('Tamaño máximo de foto guardado.', 'success');
-            });
-        }
 
         // Use event delegation for dynamically added history buttons
         const historyTableBodyEl = document.getElementById('history-table-body');
@@ -2536,9 +2550,6 @@ Estructura principal de la aplicación
                         showToast("ID de verificación inválido.", "error");
                     }
                 }
-                // Add delete button handler here if needed in the future
-                // const deleteBtn = e.target.closest('.delete-verification-btn');
-                // if (deleteBtn) { ... }
             });
         }
 
@@ -2624,18 +2635,18 @@ Estructura principal de la aplicación
                 if (commitError) return; // Prevent success message if error occurred
                 hideLoader();
                 showToast(`✅ ${productsToCommit.length} verificaciones guardadas con éxito.`, 'success');
+                // Reset```html
                 // Reset products state
                 productsToCommit.forEach(p => {
                     const template = productTemplates.find(t => t.sku === p.sku);
                     if (template) {
-                        Object.assign(p, createInitialProductState(template));
+                       Object.assign(p, createInitialProductState(template));
                     }
                 });
                 filterAndRender();
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fas fa-save mr-2"></i> Guardar en Historial`;
             };
-
             transaction.onerror = (event) => {
                 hideLoader();
                 // Error might be from commit phase or caught earlier
@@ -2705,7 +2716,7 @@ Estructura principal de la aplicación
                     }
                 }
 
-                openModal(product); // Open the checklist modal (backdrop remains)
+                openModal(product); // Open checklist modal (backdrop remains)
 
                 // Populate notes after modal is potentially rendered
                 setTimeout(() => {
@@ -2723,7 +2734,6 @@ Estructura principal de la aplicación
                 closeModalAndBackdrop(); // Ensure backdrop closes on error
             }
         };
-
 
         const onScanFailure = (error) => {
             // console.warn(`QR scan error: ${error}`); // Optional: Log errors for debugging
@@ -2787,8 +2797,6 @@ Estructura principal de la aplicación
                                 try { html5QrCode.stop().catch(()=>{}); } catch(e){}
                                 html5QrCode = null;
                             }
-                            // Optionally close modal on start failure after a delay
-                            // setTimeout(closeModalAndBackdrop, 1500);
                         });
                 } catch (err) {
                     console.error('Error inicializando Html5Qrcode:', err);
@@ -2799,8 +2807,6 @@ Estructura principal de la aplicación
                         try { html5QrCode.stop().catch(()=>{}); } catch(e){}
                         html5QrCode = null;
                     }
-                    // Optionally close modal on init failure after a delay
-                    // setTimeout(closeModalAndBackdrop, 1500);
                 }
             }, 250); // Increased delay slightly
         }
@@ -2844,9 +2850,6 @@ Estructura principal de la aplicación
         }
 
 
-        scanQrMainBtn.addEventListener('click', startQrScanner);
-        // closeQrScannerBtn listener is now part of closeModalAndBackdrop
-
         // --- END QR SCANNER LOGIC ---
 
 
@@ -2870,15 +2873,17 @@ Estructura principal de la aplicación
         // Registro del Service Worker para PWA
         // =============================
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado:', registration);
-                    showToast('Aplicación instalable como PWA.', 'info');
-                })
-                .catch((error) => {
-                    console.error('Error al registrar el Service Worker:', error);
-                    showToast('Error al habilitar PWA.', 'error');
-                });
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado:', registration);
+                        showToast('Aplicación instalable como PWA.', 'info');
+                    })
+                    .catch((error) => {
+                        console.error('Error al registrar el Service Worker:', error);
+                        showToast('Error al habilitar PWA.', 'error');
+                    });
+            });
         }
     }); // End DOMContentLoaded
 
@@ -2897,22 +2902,20 @@ Estructura principal de la aplicación
             error: 'fa-times-circle',
             info: 'fa-info-circle'
         }[type] || 'fa-info-circle'; // Default icon
-        toast.className = `toast ${type}`; // Add class the first
+        toast.className = `toast ${type}`;
         // Sanitize message before inserting as HTML
         const safeMessage = String(message).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        toast.innerHTML = `<i class="fas ${iconClass}" aria-hidden="true"></i><span class="ml-2">${safeMessage}</span>`; // Added ml-2 for spacing
-        toast.setAttribute('role', 'alert'); // Accessibility
+        toast.innerHTML = `<i class="fas ${iconClass}" aria-hidden="true"></i><span class="ml-2">${safeMessage}</span>`;
+        toast.setAttribute('role', 'alert');
         toast.setAttribute('aria-live', 'assertive');
 
         container.appendChild(toast);
-
         // Trigger transition using requestAnimationFrame for reliability
         requestAnimationFrame(() => {
             requestAnimationFrame(() => { // Double RAF for some browsers
                 toast.classList.add('show');
             });
         });
-
 
         // Auto-dismiss after a delay
         setTimeout(() => {
@@ -2973,7 +2976,6 @@ Estructura principal de la aplicación
             // Focus management for accessibility - focus OK button by default
             okBtn.focus();
 
-
             const cleanup = (result) => {
                 modal.classList.remove('active');
                 // Hide backdrop only if no other modal is active
@@ -3015,7 +3017,6 @@ Estructura principal de la aplicación
                     focusableElements[nextIndex].focus();
                 }
             };
-
 
             // Add listeners
             okBtn.addEventListener('click', handleOk, { once: true });
