@@ -2,7 +2,7 @@
 
 Sitio publicado: https://joseluiscruz-hub.github.io/checklist-verticalidad/
 
-![pages build and deployment](https://github.com/Joseluiscruz-hub/checklist-verticalidad/actions/workflows/deploy-pages.yml/badge.svg)
+![pages build and deployment](https://github.com/Joseluiscruz.me)
 
 Descripción
 
