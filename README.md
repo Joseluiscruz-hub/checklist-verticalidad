@@ -1,6 +1,6 @@
 # Checklist Verticalidad
 
-Sitio publicado: https://joseluiscruz-hub.github.io/checklist-verticalidad/
+Sitio publicado: https://joseluiscruz.me/
 
 ![pages build and deployment](https://github.com/Joseluiscruz.me)
 
