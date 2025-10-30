@@ -1453,6 +1453,22 @@ Estructura principal de la aplicación
                 </div>
               </div>
 
+              <!-- Área (nuevo) -->
+              <div class="mb-4">
+                <label for="area" class="block mb-2 text-sm font-medium"
+                  >Área:</label
+                >
+                <select
+                  id="area"
+                  class="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                >
+                  <option value="">Seleccionar área</option>
+                  <option value="Operaciones">Operaciones</option>
+                  <option value="Produccion">Producción</option>
+                  <option value="Control de Calidad">Control de Calidad</option>
+                </select>
+              </div>
+
               <!-- Ubicación -->
               <div class="mb-4">
                 <label for="location" class="block mb-2 text-sm font-medium"
@@ -2490,10 +2506,18 @@ Estructura principal de la aplicación
                   .replace(/</g, '&lt;')
                   .replace(/>/g, '&gt;');
                 modalContent.innerHTML = `
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-6">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-6">
                             <div><strong class="block text-gray-500 dark:text-gray-400">Inspector:</strong> ${safeInspector}</div>
                             <div><strong class="block text-gray-500 dark:text-gray-400">Turno:</strong> ${
                               verification.turno || 'N/A'
+                            }</div>
+                            <div><strong class="block text-gray-500 dark:text-gray-400">Área:</strong> ${
+                              (verification.area &&
+                                String(verification.area).replace(
+                                  /</g,
+                                  '&lt;'
+                                )) ||
+                              'N/A'
                             }</div>
                             <div><strong class="block text-gray-500 dark:text-gray-400">Ubicación:</strong> ${safeUbicacion}</div>
                             <div><strong class="block text-gray-500 dark:text-gray-400">Estado:</strong> ${
@@ -3099,6 +3123,9 @@ Estructura principal de la aplicación
           if (inspectorElLocal)
             inspectorElLocal.value = product.inspector || '';
           if (turnoElLocal) turnoElLocal.value = product.turno || '';
+          // [NUEVO] Cargar el valor del área
+          const areaElLocal = document.getElementById('area');
+          if (areaElLocal) areaElLocal.value = product.area || '';
           if (notesTextarea) notesTextarea.value = product.notes || '';
           if (locationInput) locationInput.value = product.ubicacion || '';
           modal?.classList.add('active');
@@ -3330,6 +3357,8 @@ Estructura principal de la aplicación
             product.ubicacion = locationInput.value;
             product.inspector = document.getElementById('inspector').value;
             product.turno = document.getElementById('turno').value;
+            // [NUEVO] Leer el valor del área
+            product.area = document.getElementById('area')?.value || '';
             updatePhotoCount(product); // Ensure count is updated before closing
             filterAndRender(); // Update main table view immediately
             closeModalAndBackdrop(); // Use combined close function
@@ -3414,6 +3443,7 @@ Estructura principal de la aplicación
               'Estado General',
               'Inspector',
               'Turno',
+              'Área', // <--- [NUEVO]
               'Ubicación',
               'Observaciones Generales',
               ...parametrosChecklist.map((p) => p.pregunta),
@@ -3429,6 +3459,7 @@ Estructura principal de la aplicación
                 statusMap[product.status] || product.status,
                 product.inspector || '',
                 product.turno || '',
+                product.area || '', // <--- [NUEVO]
                 product.ubicacion || '',
                 product.notes || '',
                 ...parametrosChecklist.map(
@@ -3612,6 +3643,11 @@ Estructura principal de la aplicación
                     <td style="border:1px solid #ccc; padding:4px;">${
                       p.turno || '-'
                     }</td>
+                    <td style="border:1px solid #ccc; padding:4px;">${(
+                      p.area || '-'
+                    )
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')}</td>
                     <td style="border:1px solid #ccc; padding:4px; text-align: center;">${
                       p.fotos_adjuntas || 0
                     }</td>
@@ -3639,11 +3675,11 @@ Estructura principal de la aplicación
                   .join('');
 
                 productRow += `
-                        <tr class="photo-row" style="page-break-inside: avoid;">
-                            <td colspan="9" style="border:1px solid #ccc; padding: 10px; background-color: #fdfdfd;">
-                                <div class="photo-container">${photoItems}</div>
-                            </td>
-                        </tr>
+            <tr class="photo-row" style="page-break-inside: avoid;">
+              <td colspan="10" style="border:1px solid #ccc; padding: 10px; background-color: #fdfdfd;">
+                <div class="photo-container">${photoItems}</div>
+              </td>
+            </tr>
                     `;
               }
               return productRow;
@@ -3717,8 +3753,8 @@ Estructura principal de la aplicación
 
                 // --- PAGE 2: DETAILED REPORT ---
                 printWindow.document.write(`
-                    <div class="section-title">Detalle de Productos Verificados</div>
-                    <table><thead><tr><th>SKU</th><th>Desc.</th><th>Factor</th><th>Estado</th><th>% OK</th><th>Ubic.</th><th>Insp.</th><th>Turno</th><th>Fotos</th></tr></thead><tbody>${tableRows}</tbody></table>`);
+          <div class="section-title">Detalle de Productos Verificados</div>
+          <table><thead><tr><th>SKU</th><th>Desc.</th><th>Factor</th><th>Estado</th><th>% OK</th><th>Ubic.</th><th>Insp.</th><th>Turno</th><th>Área</th><th>Fotos</th></tr></thead><tbody>${tableRows}</tbody></table>`);
 
                 printWindow.document.write('</body></html>');
                 printWindow.document.close();
@@ -3802,6 +3838,7 @@ Estructura principal de la aplicación
               'Estado General',
               'Inspector',
               'Turno',
+              'Área', // <--- [NUEVO]
               'Ubicación',
               'Observaciones',
               'Fotos Adjuntas',
@@ -3821,6 +3858,7 @@ Estructura principal de la aplicación
                 statusMap[v.status] || v.status,
                 v.inspector || '',
                 v.turno || '',
+                v.area || '', // <--- [NUEVO]
                 v.ubicacion || '',
                 (v.observaciones || '').replace(/\n/g, ' '), // Replace newlines in notes
                 v.total_fotos || 0,
@@ -4215,6 +4253,7 @@ Estructura principal de la aplicación
                     fecha: new Date().toISOString(),
                     inspector: product.inspector,
                     turno: product.turno,
+                    area: product.area, // <--- [NUEVO] Añadir aquí
                     ubicacion: product.ubicacion,
                     observaciones: product.notes,
                     parametros: product.parametros,
