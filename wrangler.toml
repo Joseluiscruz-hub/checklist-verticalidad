@@ -1,0 +1,8 @@
+name = "checklist-security-worker"
+type = "javascript"
+account_id = "48c1777cb510d03263cdbc1df8b155b6"
+compatibility_date = "2025-10-29"
+main = "src/index.js"
+
+# routes intentionally omitted for workers.dev testing; when ready to attach to joseluiscruz.me,
+# add: routes = ["joseluiscruz.me/*"]
