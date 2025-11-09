@@ -3,35 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- SEO Meta Tags -->
-    <title>Checklist de Verticalidad y Estibado - Coca-Cola FEMSA Cuautitlán</title>
-    <meta name="description" content="Aplicación profesional para verificar verticalidad y estibado de productos en Planta Cuautitlán. Incluye escaneo QR, historial completo, estadísticas en tiempo real y modo offline." />
-    <meta name="keywords" content="verticalidad, estibado, Coca-Cola, FEMSA, control de calidad, checklist, inventario, planta Cuautitlán, PWA" />
-    <meta name="author" content="Coca-Cola FEMSA - Planta Cuautitlán" />
-    <meta name="robots" content="index, follow" />
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://joseluiscruz.me/" />
-    <meta property="og:title" content="Checklist de Verticalidad y Estibado - Coca-Cola FEMSA" />
-    <meta property="og:description" content="Sistema profesional de verificación de productos con escaneo QR, historial y estadísticas. Disponible como PWA para uso offline." />
-    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'><rect width='1200' height='630' fill='%23ed1c24'/><text x='600' y='315' font-size='120' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>CC FEMSA</text><text x='600' y='420' font-size='40' fill='white' text-anchor='middle'>Checklist Verticalidad</text></svg>" />
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Checklist de Verticalidad y Estibado - FEMSA" />
-    <meta name="twitter:description" content="Sistema profesional de verificación con escaneo QR, historial y estadísticas" />
-    <meta name="twitter:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'><rect width='1200' height='630' fill='%23ed1c24'/><text x='600' y='315' font-size='120' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>CC FEMSA</text></svg>" />
-
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#ed1c24" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Checklist FEMSA" />
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ed1c24'/><text x='50' y='55' font-size='40' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>CC</text></svg>" />
-
-    <!-- Manifest -->
+    <title>Checklist de Verticalidad y Estibado</title>
+    <!-- [MEJORA] Añadido enlace al manifest para PWA (de prueba03) -->
     <link rel="manifest" href="manifest.json" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -625,15 +598,12 @@
     </style>
   </head>
   <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-    <!-- Skip to main content link for accessibility -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-red-600 focus:text-white focus:rounded focus:shadow-lg">Saltar al contenido principal</a>
-
     <!--
 =============================
 Contenedores de UI (Toast, Loader, Confirm) (AÑADIDOS)
 =============================
 -->
-    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div id="toast-container"></div>
     <div id="loader-backdrop" class="loader-backdrop no-print">
       <div class="loader"></div>
     </div>
@@ -674,7 +644,7 @@ Contenedores de UI (Toast, Loader, Confirm) (AÑADIDOS)
 Estructura principal de la aplicación
 =============================
 -->
-    <main class="app-container" id="main-content">
+    <main class="app-container">
       <header
         class="app-header"
         role="banner"
@@ -1294,11 +1264,10 @@ Estructura principal de la aplicación
               <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h4 class="font-medium mb-2">Información de la Aplicación</h4>
                 <div class="text-sm text-gray-600 dark:text-gray-400">
-                  <p>Versión: 3.2.0 (Optimizada PWA)</p>
+                  <p>Versión: 3.1.0 (Reporte Corporativo)</p>
                   <p>Base de Datos: IndexedDB</p>
                   <p>Capacidad: Estimada localmente</p>
-                  <p>Modo: Offline/Online</p>
-                  <p class="mt-2 text-xs">Mejoras v3.2: SEO, Accesibilidad, Performance SW</p>
+                  <p>Modo: Offline</p>
                 </div>
               </div>
             </div>
@@ -4637,50 +4606,22 @@ Estructura principal de la aplicación
           });
 
         // =============================
-        // Registro del Service Worker para PWA (Mejorado)
+        // Registro del Service Worker para PWA
         // =============================
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', () => {
+            // Use a relative path so registration works when the site is served under a subpath
             navigator.serviceWorker
-              .register('./service-worker.js', { scope: './' })
+              .register('service-worker.js')
               .then((registration) => {
-                console.log('✅ Service Worker v3 registrado:', registration);
-
-                // Check for updates
-                registration.addEventListener('updatefound', () => {
-                  const newWorker = registration.installing;
-                  console.log('🔄 Nueva versión de SW detectada');
-
-                  newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                      showToast('Nueva versión disponible. Recarga la página para actualizar.', 'info');
-                    }
-                  });
-                });
-
-                // Check updates periodically
-                setInterval(() => {
-                  registration.update().catch(err => console.warn('Update check failed:', err));
-                }, 60000 * 30); // Check every 30 minutes
+                console.log('Service Worker registrado:', registration);
+                showToast('Aplicación instalable como PWA.', 'info');
               })
               .catch((error) => {
-                console.error('❌ Error al registrar el Service Worker:', error);
-                showToast('La aplicación funcionará sin modo offline.', 'error');
+                console.error('Error al registrar el Service Worker:', error);
+                showToast('Error al habilitar PWA.', 'error');
               });
           });
-
-          // Handle Service Worker controller change
-          let refreshing = false;
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshing) {
-              refreshing = true;
-              console.log('🔁 SW controller changed, reloading...');
-              window.location.reload();
-            }
-          });
-        } else {
-          console.warn('⚠️ Service Workers no soportados en este navegador');
-          showToast('Tu navegador no soporta modo offline.', 'info');
         }
       }); // End DOMContentLoaded
 
