@@ -1,0 +1,49 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build_and_deploy_pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (if any)
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          fi
+
+      - name: Build (if package.json has a build script)
+        run: |
+          if [ -f package.json ] && npm run | grep -q "build"; then
+            npm run build
+          fi
+
+      - name: Publish to Cloudflare Pages
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          # Publish the root or build directory to Cloudflare Pages using wrangler
+          PUBLISH_DIR=.
+          if [ -f package.json ] && npm run | grep -q "build"; then
+            # if build output exists use 'build' or dist folder; adapt if needed
+            PUBLISH_DIR=./build
+          fi
+          npx wrangler pages publish "$PUBLISH_DIR" --project-name verticalidad-pages --branch main --commit-hash "${{ github.sha }}" --account-id "$CF_ACCOUNT_ID"
+

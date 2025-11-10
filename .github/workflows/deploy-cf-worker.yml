@@ -1,0 +1,67 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (worker)
+        working-directory: tools/cloudflare-worker
+        run: npm ci
+
+      - name: Prepare wrangler config for prod (if secrets present)
+        working-directory: tools/cloudflare-worker
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_ROUTE: ${{ secrets.CF_ROUTE }}
+        run: |
+          echo "Checking for optional production vars..."
+          if [ -n "$CF_ACCOUNT_ID" ] && [ -n "$CF_ZONE_ID" ] && [ -n "$CF_ROUTE" ]; then
+            echo "Generating wrangler.prod.toml with provided secrets (no token included)..."
+            cat > wrangler.prod.toml <<EOF
+name = "verticalidad-worker"
+main = "src/index.ts"
+type = "modules"
+compatibility_date = "2025-10-28"
+account_id = "$CF_ACCOUNT_ID"
+zone_id = "$CF_ZONE_ID"
+route = "$CF_ROUTE"
+EOF
+            echo "wrangler.prod.toml generated."
+          else
+            echo "CF_ACCOUNT_ID/CF_ZONE_ID/CF_ROUTE not fully provided; using wrangler.toml defaults (workers_dev)."
+          fi
+
+      - name: Publish worker (wrangler)
+        working-directory: tools/cloudflare-worker
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          if [ -z "$CF_API_TOKEN" ]; then
+            echo "ERROR: CF_API_TOKEN is not set. Add it to repository secrets as 'CF_API_TOKEN'." >&2
+            exit 1
+          fi
+
+          # Prefer prod config if generated
+          if [ -f wrangler.prod.toml ]; then
+            echo "Deploying using wrangler.prod.toml..."
+            npx wrangler deploy --config wrangler.prod.toml --non-interactive
+          else
+            echo "Deploying using default wrangler.toml (workers_dev or file-specified config)..."
+            npx wrangler deploy --non-interactive
+          fi
