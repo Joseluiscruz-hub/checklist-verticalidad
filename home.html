@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Inicio - Checklist de Verticalidad y Estibado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cc-red: #ed1c24;
+            --cc-red-dark: #b71c1c;
+            --cc-gray: #333;
+            --cc-gray-light: #f5f5f5;
+            --cc-white: #fff;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--cc-gray-light);
+        }
+        .header-app {
+            background: var(--cc-red);
+            color: var(--cc-white);
+            padding: 0.7rem 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+        }
+        .brand-logo {
+            font-weight: 900;
+            font-size: 1.5rem;
+            background-color: var(--cc-white);
+            color: var(--cc-red);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <!-- Header Corporativo -->
+    <header class="header-app">
+        <div class="brand-logo">CC</div>
+        <span>Checklist de Verticalidad y Estibado</span>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="p-4 sm:p-6">
+        <!-- Saludo y Fecha -->
+        <section class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Bienvenido de vuelta</h1>
+            <p class="text-gray-500" id="datetime">Cargando fecha y hora...</p>
+        </section>
+
+        <!-- Acciones Rápidas -->
+        <section class="mb-6">
+            <div class="space-y-4">
+                <a href="#" class="w-full bg-red-600 text-white flex items-center justify-center gap-3 py-4 px-6 rounded-lg text-lg font-semibold shadow-md hover:bg-red-700 transition-colors">
+                    <i class="fas fa-qrcode"></i>
+                    <span>Escanear QR</span>
+                </a>
+                <a href="#" class="w-full bg-gray-200 text-gray-800 flex items-center justify-center gap-3 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Verificar Productos</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Resumen del Día -->
+        <section class="mb-6">
+            <h2 class="text-xl font-bold text-gray-700 mb-3">Resumen del Día</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <!-- Card 1: Verificaciones Hoy -->
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center text-center">
+                    <i class="fas fa-tasks text-blue-500 text-2xl mb-2"></i>
+                    <p class="text-2xl font-bold text-gray-800">0</p>
+                    <p class="text-sm text-gray-500">Verificaciones Hoy</p>
+                </div>
+                <!-- Card 2: Incidencias Reportadas -->
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center text-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-2xl mb-2"></i>
+                    <p class="text-2xl font-bold text-gray-800">0</p>
+                    <p class="text-sm text-gray-500">Incidencias</p>
+                </div>
+                <!-- Card 3: Cumplimiento -->
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center text-center col-span-2 sm:col-span-1">
+                    <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+                    <p class="text-2xl font-bold text-gray-800">100%</p>
+                    <p class="text-sm text-gray-500">Cumplimiento</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navegación Secundaria -->
+        <section>
+            <h2 class="text-xl font-bold text-gray-700 mb-3">Otras Secciones</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-history text-gray-600 text-xl"></i>
+                    <div>
+                        <p class="font-semibold text-gray-800">Historial</p>
+                    </div>
+                </a>
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-chart-bar text-gray-600 text-xl"></i>
+                    <div>
+                        <p class="font-semibold text-gray-800">Estadísticas</p>
+                    </div>
+                </a>
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-cog text-gray-600 text-xl"></i>
+                    <div>
+                        <p class="font-semibold text-gray-800">Configuración</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const datetimeEl = document.getElementById('datetime');
+
+            function updateDateTime() {
+                const now = new Date();
+
+                const dateOptions = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
+                const timeOptions = {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                };
+
+                const formattedDate = new Intl.DateTimeFormat('es-MX', dateOptions).format(now);
+                const formattedTime = new Intl.DateTimeFormat('es-MX', timeOptions).format(now);
+
+                const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+
+                datetimeEl.textContent = `${capitalizedDate} - ${formattedTime}`;
+            }
+
+            updateDateTime();
+        });
+    </script>
+</body>
+</html>
