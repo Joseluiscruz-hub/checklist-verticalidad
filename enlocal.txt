@@ -3093,6 +3093,11 @@ Estructura principal de la aplicación
           if (modalTitle) modalTitle.textContent = product.descripcion;
           if (modalSku) modalSku.textContent = `SKU: ${product.sku}`;
           if (modalFactor) modalFactor.textContent = product.factorEstiba;
+                    // Mostrar imagen de referencia visual
+                    const factorImg = document.getElementById('factor-estiva-img');
+                    if (factorImg) {
+                      factorImg.style.display = 'inline-block';
+                    }
           renderParameters(product); // Ensure this runs before accessing form elements
           const inspectorElLocal = document.getElementById('inspector');
           const turnoElLocal = document.getElementById('turno');
